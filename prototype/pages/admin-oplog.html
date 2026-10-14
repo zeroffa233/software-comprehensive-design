@@ -5,6 +5,9 @@
 <body>
 <a class="back" href="../index.html">← 返回原型入口</a> ｜ <a href="admin-login.html">返回管理端登录</a>
 <h1>管理员操作日志（只读）</h1>
+<form>
+<p>筛选：<select><option>全部动作</option><option>封禁用户</option><option>解封用户</option><option>下架商品</option><option>审核通过</option><option>审核驳回</option></select> <input type="text" placeholder="操作人ID / 目标ID"> <button>查询</button></p>
+</form>
 <table>
   <tr><th>时间</th><th>操作人</th><th>动作</th><th>目标类型</th><th>目标ID</th><th>详情</th></tr>
   <tr><td>2026-10-14 10:21</td><td>管理员001</td><td>封禁用户</td><td>user</td><td>2</td><td>发布违规代抢信息，经核实封禁</td></tr>

@@ -36,7 +36,7 @@ API_DOCS = {
     "design/api-购物交易.md": 8,
 }
 ROW = re.compile(
-    r"^\|\s*(?:\d+\s*\|)?\s*(GET|POST|PUT|DELETE|PATCH)\s+(/api/v1/\S+?)\s*\|", re.M
+    r"^\|\s*(?:\d+\s*\|)?\s*(GET|POST|PUT|DELETE|PATCH)\s*[|\s]\s*(/api/v1/\S+?)\s*\|", re.M
 )
 
 results: list[tuple[bool, str]] = []
