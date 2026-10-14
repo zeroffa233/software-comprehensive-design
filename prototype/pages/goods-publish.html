@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>发布商品 - 校园二手交易平台原型</title>
+<style>
+  body{font-family:sans-serif;max-width:480px;margin:0 auto;padding:12px}
+  form p{margin:6px 0}
+  .req{color:#c00}
+  .pic{border:1px dashed #999;padding:14px;text-align:center;color:#666}
+  .btn{display:inline-block;border:1px solid #333;padding:6px 14px;margin:4px;text-decoration:none}
+</style>
+</head>
+<body>
+<h2>发布商品</h2>
+<p><a href="goods-mine.html">&lt; 返回我的商品</a></p>
+
+<!-- 发布表单（输入项按 report/05 4.1 发布页列全，必填标 *） -->
+<form>
+  <p>* 标题：<input type="text" maxlength="40" placeholder="5-40字，如：高数教材（第七版）"> <span style="color:#666">0/40</span></p>
+
+  <p>* 分类：
+    <select><option>请选择一级分类</option><option>教材书籍</option><option>数码电子</option><option>生活用品</option><option>运动户外</option><option>服饰鞋包</option><option>美妆个护</option></select>
+    &gt;
+    <select><option>请选择二级分类</option><option>专业课教材</option><option>考研考公</option><option>课外读物</option></select>
+    （必须挂到二级分类）
+  </p>
+
+  <p>* 价格：¥ <input type="number" step="0.01" min="0.01" max="9999" placeholder="0.01-9999.00">
+    可议价 <input type="checkbox">
+  </p>
+
+  <p>* 库存：<input type="number" min="1" max="99" value="1">（1-99）</p>
+
+  <p>* 商品描述：</p>
+  <textarea rows="5" placeholder="10-500字，写明成色、瑕疵、购买渠道" style="width:100%"></textarea> <span style="color:#666">0/500</span>
+
+  <p>* 商品图片（最多6张，第一张为主图，单张≤5MB，jpg/png/webp）：</p>
+  <div class="pic">[ + 点击上传 ｜ 已传 1/6 ｜ 第1张标记 主图 ]</div>
+
+  <p>
+    [ Agent 润色文案 ]（SK-002 商品发布辅助：仅生成建议，须用户确认后填入，不直接落库）
+  </p>
+</form>
+
+<!-- 提交流转：二次确认弹窗 → "已提交，等待管理员审核" → 跳我的商品页。对应 report/05 4.1 操作流转 -->
+<p>
+  <a class="btn" href="goods-mine.html">提交审核（二次确认 → 跳我的商品）</a>
+  <a class="btn" href="goods-mine.html">存草稿</a>
+</p>
+
+<!-- 异常分支：必填缺失/格式错误→对应输入框红字提示不跳转；图片上传中禁止提交（report/05 4.1） -->
+
+<!-- 对应 report/05 功能条目1/2/3（发布、库存、多图）、4.1 发布页说明、US-03 -->
+</body>
+</html>
