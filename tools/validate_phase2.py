@@ -50,7 +50,10 @@ def main() -> int:
     missing = [p for p in PAGES if not (ROOT / "prototype" / p).is_file()]
     check(not missing, f"(a) 16 个页面文件齐全（缺失：{missing or '无'}）")
     for p in PAGES:
-        text = (ROOT / "prototype" / p).read_text(encoding="utf-8")
+        f = ROOT / "prototype" / p
+        if not f.is_file():
+            continue
+        text = f.read_text(encoding="utf-8")
         has_link = bool(re.search(r'href="[^"]*\.html"', text))
         has_form = "<form" in text
         if not (has_link and (has_form or p == "index.html")):
@@ -61,7 +64,10 @@ def main() -> int:
 
     graph: dict[str, set[str]] = {}
     for p in PAGES:
-        text = (ROOT / "prototype" / p).read_text(encoding="utf-8")
+        f = ROOT / "prototype" / p
+        if not f.is_file():
+            continue
+        text = f.read_text(encoding="utf-8")
         base = p.rsplit("/", 1)[0] + "/" if "/" in p else ""
         graph[p] = set()
         for href in re.findall(r'href="([^"#?]+\.html)"', text):
