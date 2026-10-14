@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>确认订单 · 校园二手交易平台原型</title>
+<style>
+  body{font-family:sans-serif;margin:20px;max-width:720px;color:#222}
+  h1{font-size:20px;border-bottom:2px solid #888;padding-bottom:6px}
+  table{border-collapse:collapse;margin:8px 0;width:100%}
+  td,th{border:1px solid #999;padding:4px 8px;font-size:13px}
+  .price{color:#c00;font-weight:bold}
+  .box{border:1px solid #ccc;padding:10px;margin:10px 0}
+  a.btn{display:inline-block;border:1px solid #333;padding:6px 16px;text-decoration:none;margin-right:8px}
+  .modal{border:2px solid #333;padding:12px;margin:14px 0;background:#fafafa}
+  .note{color:#666;font-size:12px;margin-top:16px;border-top:1px solid #ddd;padding-top:6px}
+</style>
+</head>
+<body>
+<h1>确认订单页（order-confirm）</h1>
+<p><a href="../index.html">&lt; 返回入口</a> ｜ <a href="cart.html">&lt; 来自：购物车页（去结算）</a></p>
+
+<h2>收货信息（第一版简化为文本备注，不做地址库）</h2>
+<form>
+  <label>收货备注（选填，≤100 字）：<br>
+    <textarea name="remark" rows="2" cols="50" maxlength="100" placeholder="如：放到宿舍楼下快递柜"></textarea>
+  </label>
+</form>
+
+<h2>商品清单（下单时刻价格快照）</h2>
+<table>
+  <tr><th>商品</th><th>单价快照</th><th>数量</th><th>小计</th></tr>
+  <tr><td><a href="goods-detail.html">高等数学教材（第七版）· 九成新</a></td><td>￥15.00</td><td>1</td><td>￥15.00</td></tr>
+  <tr><td><a href="goods-detail.html">小米台灯（青春版）</a></td><td>￥39.00</td><td>1</td><td>￥39.00</td></tr>
+</table>
+
+<div class="box">
+  支付方式：模拟支付（第一版仅此一项，只读展示，不接真实第三方支付渠道）<br>
+  合计应付：<span class="price">￥54.00</span>
+</div>
+
+<div class="bar">
+  <a class="btn" href="#pay-modal">提交订单（后端校验库存 + 重复下单）</a>
+  <a href="cart.html">返回购物车</a>
+</div>
+
+<h2>模拟支付确认弹窗（提交校验通过后出现）</h2>
+<div class="modal" id="pay-modal">
+  <p>订单号：2026101400001（示例，规则：日期+当日序号）</p>
+  <p>应付金额：<span class="price">￥54.00</span></p>
+  <p>
+    <a class="btn" href="order-list.html">确认支付（状态：待支付→已支付，扣库存）</a>
+    <a href="order-confirm.html">取消</a>
+  </p>
+</div>
+
+<h2>流转说明</h2>
+<table>
+  <tr><th>分支</th><th>去向</th></tr>
+  <tr><td>校验通过 → 确认支付成功</td><td>order-list.html，该订单置顶展示，状态"已支付"</td></tr>
+  <tr><td>存在同商品待支付订单（重复下单校验拦截）</td><td>页内 toast"已存在待支付订单"，提供"前往支付 / 取消原订单后重新下单"选择</td></tr>
+  <tr><td>库存不足 / 商品已下架</td><td>页内 toast 提示原因，不跳转</td></tr>
+</table>
+
+<p class="note">对应 report/06 购物交易模块需求 · 原型页面说明 3.2 确认订单页（order-confirm）；功能需求条目：提交订单 / 重复下单校验 / 模拟支付。纯静态原型，表单不提交。</p>
+</body>
+</html>
