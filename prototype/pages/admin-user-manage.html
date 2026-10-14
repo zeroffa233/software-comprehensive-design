@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8"><title>用户管理 · 管理端</title>
+<style>body{font-family:-apple-system,"PingFang SC",sans-serif;max-width:760px;margin:32px auto;padding:0 16px;font-size:14px}h1{font-size:18px}table{border-collapse:collapse;width:100%;margin-top:12px}td,th{border:1px solid #ccc;padding:6px 8px;text-align:left}button{padding:4px 10px;margin:2px;background:#0a66c2;color:#fff;border:none;font-size:13px}p.hint{font-size:13px;color:#777}a.back{font-size:13px}input{padding:6px;width:220px}textarea{width:100%;margin-top:4px}</style></head>
+<body>
+<a class="back" href="../index.html">← 返回原型入口</a> ｜ <a href="admin-login.html">返回管理端登录</a>
+<h1>用户管理（封禁 / 解封）</h1>
+<p>搜索：<input type="text" placeholder="手机号 / 昵称"> <select><option>全部状态</option><option>正常</option><option>封禁</option></select> <button>搜索</button></p>
+<table>
+  <tr><th>用户ID</th><th>手机号</th><th>昵称</th><th>角色</th><th>注册时间</th><th>最近登录</th><th>状态</th><th>操作</th></tr>
+  <tr><td>1</td><td>138****1234</td><td>用户1234</td><td>普通用户</td><td>2026-10-01</td><td>2026-10-13</td><td>正常</td><td><button>封禁（必填原因）</button></td></tr>
+  <tr><td>2</td><td>159****8888</td><td>用户8888</td><td>普通用户</td><td>2026-10-03</td><td>2026-10-12</td><td>封禁</td><td><button>解封</button></td></tr>
+</table>
+<label>封禁原因（1-100 字，写入 admin_op_log）：<textarea rows="2" placeholder="例：发布违规代抢信息，经核实封禁"></textarea></label>
+<p class="hint">封禁后：该用户 JWT 立即失效、无法登录、其"在售"商品自动下架；解封后恢复权限，被下架商品需卖家手动重新上架。</p>
+<p><a href="admin-oplog.html">→ 查看操作日志</a></p>
+<!-- 对应 report/04 封禁/解封条目（US-08） -->
+</body>
+</html>
