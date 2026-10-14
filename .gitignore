@@ -1,0 +1,16 @@
+# 课程材料（非项目交付物）
+ppt/
+
+# 隔离的 git worktree（仅模拟协作使用）
+.worktrees/
+
+# 密钥与环境（课程红线：严禁密钥入库）
+.env
+.env.*
+
+# 通用
+.DS_Store
+node_modules/
+target/
+__pycache__/
+*.log
