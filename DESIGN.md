@@ -82,7 +82,7 @@ graph TB
 
 `user`(id, phone*唯一*, password_hash, nickname, avatar, role, status, create_time)
 `category`(id, name, parent_id, sort)
-`goods`(id, seller_id, category_id, title, description, price, stock, status[在售/下架/待审核], create_time)
+`goods`(id, seller_id, category_id, title, description, price, stock, status[草稿/待审核/在售/已下架/已售出], create_time, off_shelf_reason)
 `goods_image`(id, goods_id, url, sort)
 `cart_item`(id, user_id, goods_id, num)
 `orders`(id, order_no, buyer_id, goods_id, deal_price, status[待支付/已支付/已完成/已取消], create_time)
@@ -90,6 +90,8 @@ graph TB
 `message`(id, user_id, type, content, is_read, create_time)【可选】
 `agent_chat_log`(id, user_id, prompt, response, skill_name, status, create_time)
 `admin_op_log`(id, admin_id, action, target_type, target_id, detail, create_time)
+
+- **分类初始数据约定**（需求阶段裁定，v1.1 修订）：系统预置校园常用一级分类（如：教材书籍、数码电子、生活用品、运动户外、服饰鞋包、美妆个护）及各下一级二级分类，随建库 seed SQL 预置；管理员可在管理端维护分类（新增/排序/停用，第一版列为可选功能）。seed SQL 思路：`INSERT INTO category(name, parent_id, sort)` 先插 6 条一级（parent_id=0），再按需插二级并指定 parent_id 与排序值。
 
 ## 7. Agent-Skill-MCP 方案基线
 
