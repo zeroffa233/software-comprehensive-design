@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>校园二手物品交易平台 · 原型入口</title>
+<style>
+  body{font-family:-apple-system,"PingFang SC",sans-serif;max-width:860px;margin:24px auto;padding:0 16px;color:#222}
+  h1{font-size:22px} h2{font-size:16px;margin-top:28px}
+  table{border-collapse:collapse;width:100%}
+  td,th{border:1px solid #ccc;padding:6px 10px;text-align:left;font-size:14px}
+  a{color:#0a66c2}
+  .note{color:#777;font-size:13px}
+</style>
+</head>
+<body>
+<h1>校园二手物品交易平台 · 页面原型入口</h1>
+<p class="note">东南大学 计算机科学与技术专业 · 软件开发综合课程设计（B09P0090）小组 ｜ 原型仅表达页面流转与输入项，不做视觉美化。对应需求文档：report/01-09（2026-10-15 提交版）。</p>
+
+<h2>用户端（微信小程序 · 普通用户/游客）</h2>
+<table>
+  <tr><th>页面</th><th>流转去向</th><th>需求来源</th></tr>
+  <tr><td><a href="pages/auth-login.html">登录页</a></td><td>→ 注册页 / 找回密码 / 个人中心</td><td>report/04 登录条目</td></tr>
+  <tr><td><a href="pages/auth-register.html">注册页</a></td><td>→ 登录页（成功自动登录→首页）</td><td>report/04 注册条目</td></tr>
+  <tr><td><a href="pages/auth-findpwd.html">找回密码页</a></td><td>→ 登录页</td><td>report/04 找回密码条目</td></tr>
+  <tr><td><a href="pages/auth-profile.html">个人中心</a></td><td>→ 我的商品 / 我的订单 / 退出登录</td><td>report/04 个人中心说明</td></tr>
+  <tr><td><a href="pages/goods-list.html">商品列表（浏览/搜索）</a></td><td>→ 商品详情</td><td>report/05 浏览搜索条目</td></tr>
+  <tr><td><a href="pages/goods-detail.html">商品详情</a></td><td>→ 加入购物车 / 发布者编辑入口</td><td>report/05 详情页说明</td></tr>
+  <tr><td><a href="pages/goods-publish.html">商品发布</a></td><td>→ 我的商品（待审核）</td><td>report/05 发布条目</td></tr>
+  <tr><td><a href="pages/goods-mine.html">我的商品</a></td><td>→ 编辑 / 下架 / 重新上架</td><td>report/05 我的商品页说明</td></tr>
+  <tr><td><a href="pages/cart.html">购物车</a></td><td>→ 订单确认</td><td>report/06 购物车条目</td></tr>
+  <tr><td><a href="pages/order-confirm.html">订单确认</a></td><td>→ 模拟支付 → 订单列表</td><td>report/06 下单/模拟支付条目</td></tr>
+  <tr><td><a href="pages/order-list.html">订单列表</a></td><td>→ 订单详情 / 支付 / 取消</td><td>report/06 订单状态机</td></tr>
+</table>
+
+<h2>管理端（Vue3 PC · 平台管理员）</h2>
+<table>
+  <tr><th>页面</th><th>流转去向</th><th>需求来源</th></tr>
+  <tr><td><a href="pages/admin-login.html">管理端登录</a></td><td>→ 商品审核 / 用户管理 / 操作日志</td><td>report/04 登录条目（管理员跳转 PC 管理端）</td></tr>
+  <tr><td><a href="pages/admin-goods-audit.html">商品审核 / 违规下架</a></td><td>→ 操作日志（留痕）</td><td>report/05 管理员审核/下架条目</td></tr>
+  <tr><td><a href="pages/admin-user-manage.html">用户管理（封禁/解封）</a></td><td>→ 操作日志（留痕）</td><td>report/04 封禁/解封条目</td></tr>
+  <tr><td><a href="pages/admin-oplog.html">操作日志</a></td><td>只读列表</td><td>report/04 操作日志条目</td></tr>
+</table>
+
+<p class="note">全流程点通路径：登录 → 商品列表 → 商品详情 → 加入购物车 → 购物车 → 订单确认 → 模拟支付 → 订单列表；发布路径：登录 → 商品发布 → 我的商品；管理路径：管理端登录 → 商品审核/用户管理 → 操作日志。</p>
+<!-- 对应需求：需求分析报告 v1.0.1 全部章节；本页为原型导航壳 -->
+</body>
+</html>

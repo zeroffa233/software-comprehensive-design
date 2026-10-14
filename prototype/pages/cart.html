@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>购物车 · 校园二手交易平台原型</title>
+<style>
+  body{font-family:sans-serif;margin:20px;max-width:720px;color:#222}
+  h1{font-size:20px;border-bottom:2px solid #888;padding-bottom:6px}
+  .item{border:1px solid #ccc;padding:8px;margin-bottom:8px;display:flex;gap:10px;align-items:center}
+  .thumb{width:56px;height:56px;background:#eee;border:1px solid #aaa;text-align:center;line-height:56px;font-size:12px}
+  .info{flex:1}
+  .price{color:#c00;font-weight:bold}
+  .bar{margin:14px 0;padding:10px;border:1px dashed #888;display:flex;justify-content:space-between;align-items:center}
+  table{border-collapse:collapse;margin:8px 0}
+  td,th{border:1px solid #999;padding:4px 8px;font-size:13px}
+  a.btn{display:inline-block;border:1px solid #333;padding:4px 12px;text-decoration:none;margin-right:8px}
+  .note{color:#666;font-size:12px;margin-top:16px;border-top:1px solid #ddd;padding-top:6px}
+</style>
+</head>
+<body>
+<h1>购物车页（cart）</h1>
+<p><a href="../index.html">&lt; 返回入口</a> ｜ <a href="goods-detail.html">&lt; 来自：商品详情页（加入购物车后跳入）</a></p>
+
+<h2>已加入商品（示例 2 件）</h2>
+<form>
+  <p><label><input type="checkbox" checked> 全选</label></p>
+
+  <div class="item">
+    <span class="thumb">主图</span>
+    <div class="info">
+      <a href="goods-detail.html">高等数学教材（第七版）· 九成新</a><br>
+      单价 <span class="price">￥15.00</span> ×
+      <label>数量 <input type="number" value="1" min="1" max="3" style="width:48px"></label>
+      （库存 3）＝ 小计 <span class="price">￥15.00</span><br>
+      <label><input type="checkbox" checked> 勾选结算</label>
+      <a href="cart.html">[移除]</a>
+    </div>
+  </div>
+
+  <div class="item">
+    <span class="thumb">主图</span>
+    <div class="info">
+      <a href="goods-detail.html">小米台灯（青春版）</a><br>
+      单价 <span class="price">￥39.00</span> ×
+      <label>数量 <input type="number" value="1" min="1" max="1" style="width:48px"></label>
+      （库存 1）＝ 小计 <span class="price">￥39.00</span><br>
+      <label><input type="checkbox" checked> 勾选结算</label>
+      <a href="cart.html">[移除]</a>
+    </div>
+  </div>
+  <p>输入项说明：数量步进器范围 1～剩余库存；移除即时生效无需二次确认。</p>
+</form>
+
+<div class="bar">
+  <span>已选 2 件，合计 <span class="price">￥54.00</span></span>
+  <span>
+    <a class="btn" href="order-confirm.html">去结算（校验勾选≥1 件且库存充足）</a>
+    <a href="goods-list.html">继续逛逛</a>
+  </span>
+</div>
+
+<h2>流转说明</h2>
+<table>
+  <tr><th>操作</th><th>去向</th></tr>
+  <tr><td>去结算（校验通过）</td><td>order-confirm.html（携带选中商品 id 列表）</td></tr>
+  <tr><td>点击商品标题</td><td>goods-detail.html 回看详情</td></tr>
+  <tr><td>校验失败（未勾选/库存不足）</td><td>页内 toast 提示，不跳转</td></tr>
+</table>
+
+<p class="note">对应 report/06 购物交易模块需求 · 原型页面说明 3.1 购物车页（cart）；功能需求条目：加入购物车 / 调整数量或移除。纯静态原型，表单不提交。</p>
+</body>
+</html>

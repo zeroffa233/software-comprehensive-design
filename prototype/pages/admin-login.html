@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8"><title>管理端登录 · 校园二手交易平台</title>
+<style>body{font-family:-apple-system,"PingFang SC",sans-serif;max-width:420px;margin:32px auto;padding:0 16px}h1{font-size:18px}label{display:block;margin-top:12px;font-size:14px}input{width:100%;padding:8px;box-sizing:border-box;margin-top:4px}button{margin-top:16px;padding:8px 18px;background:#b35900;color:#fff;border:none;font-size:14px}p.hint{font-size:13px;color:#777}a.back{font-size:13px}a.nav{display:block;margin-top:6px}</style></head>
+<body>
+<a class="back" href="../index.html">← 返回原型入口</a>
+<h1>平台管理端 · 登录（Vue3 PC）</h1>
+<form>
+  <label>管理员手机号<input type="tel" required></label>
+  <label>密码<input type="password" required></label>
+  <label><input type="checkbox"> 记住我（2 小时内免登录）</label>
+  <button type="submit">登录管理端</button>
+</form>
+<p class="hint">仅角色=平台管理员的账号可登录（RBAC：@RequireRole("ADMIN")）；普通用户登录此入口返回 403。</p>
+<a class="nav" href="admin-goods-audit.html">→ 商品审核 / 违规下架</a>
+<a class="nav" href="admin-user-manage.html">→ 用户管理（封禁/解封）</a>
+<a class="nav" href="admin-oplog.html">→ 操作日志</a>
+<!-- 对应 report/04 登录条目：管理员按角色跳转 PC 管理端 -->
+</body>
+</html>

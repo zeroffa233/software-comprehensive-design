@@ -1,7 +1,7 @@
 # 课程材料（非项目交付物）
 ppt/
 
-# 隔离的 git worktree（仅模拟协作使用）
+# 隔离的 git worktree（本地多分支工作区）
 .worktrees/
 
 # 密钥与环境（课程红线：严禁密钥入库）
