@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>我的商品 - 校园二手交易平台原型</title>
+<style>
+  body{font-family:sans-serif;max-width:480px;margin:0 auto;padding:12px}
+  .tab{display:inline-block;border:1px solid #999;padding:3px 10px;margin-right:4px;text-decoration:none}
+  .card{border:1px solid #ccc;padding:8px;margin-bottom:6px}
+  .st-sale{color:green}.st-wait{color:#b80}.st-off{color:#c00}.st-sold{color:#666}
+  .btn{display:inline-block;border:1px solid #333;padding:3px 10px;margin:2px;text-decoration:none;font-size:13px}
+</style>
+</head>
+<body>
+<h2>我的商品</h2>
+<p><a href="../index.html">&lt; 返回首页</a> ｜ <a href="goods-publish.html">+ 新建商品</a></p>
+
+<!-- 状态筛选 Tab：对应 report/05 功能条目9（按状态筛选） -->
+<p>
+  <a class="tab" href="#">全部(4)</a><a class="tab" href="#">在售(1)</a><a class="tab" href="#">待审核(1)</a><a class="tab" href="#">已下架(1)</a><a class="tab" href="#">已售出(1)</a>
+</p>
+
+<!-- 商品卡片列表（静态示例，覆盖各状态） -->
+<div class="card">
+  <p>《数据结构（C语言版）》教材 ｜ ¥15.00 ｜ 库存1</p>
+  <p>状态：<span class="st-sale">在售</span></p>
+  <p><a class="btn" href="goods-detail.html">查看</a> <a class="btn" href="goods-publish.html">编辑</a> <a class="btn" href="#">下架</a></p>
+</div>
+<div class="card">
+  <p>小米台灯 Pro ｜ ¥39.00 ｜ 库存1</p>
+  <p>状态：<span class="st-wait">待审核</span>（提交于 2026-10-14 09:12）</p>
+  <p><a class="btn" href="#">查看</a></p>
+</div>
+<div class="card">
+  <p>吹风机 ｜ ¥20.00 ｜ 库存1</p>
+  <p>状态：<span class="st-off">已下架</span>（管理员下架原因：图片与实物描述不符，请修改后重新上架）</p>
+  <p><a class="btn" href="#">重新上架</a></p>
+</div>
+<div class="card">
+  <p>考研英语真题 ｜ ¥12.00 ｜ 库存0</p>
+  <p>状态：<span class="st-sold">已售出</span>（2026-10-12 成交）</p>
+  <p><a class="btn" href="#">查看</a></p>
+</div>
+
+<!-- 操作流转：编辑→复用发布页（goods-publish.html）；下架→弹窗确认后状态变已下架；
+     草稿/已下架→重新上架进入待审核（report/05 4.3 我的商品页） -->
+
+<!-- 对应 report/05 功能条目4/5/8/9、4.3 我的商品页说明、US-06/US-07；新建/编辑流转到 goods-publish.html -->
+</body>
+</html>
