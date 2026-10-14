@@ -23,13 +23,17 @@
 <p><a href="../index.html">&lt; 返回入口</a> ｜ <a href="order-confirm.html">&lt; 来自：确认订单页（支付成功跳入）</a> ｜ 入口：个人中心"我的订单"</p>
 
 <h2>状态 Tab（输入项：Tab 切换 / 下拉刷新）</h2>
-<div class="tabs">
-  <a class="cur" href="order-list.html">全部</a>
-  <a href="order-list.html">待支付</a>
-  <a href="order-list.html">已支付</a>
-  <a href="order-list.html">已完成</a>
-  <a href="order-list.html">已取消</a>
-</div>
+<form>
+  <div class="tabs">
+    <a class="cur" href="order-list.html">全部</a>
+    <a href="order-list.html">待支付</a>
+    <a href="order-list.html">已支付</a>
+    <a href="order-list.html">已完成</a>
+    <a href="order-list.html">已取消</a>
+  </div>
+  <label>订单号搜索（选填）：<input type="text" name="orderNo" placeholder="如 2026101400001" style="width:180px"></label>
+  <button type="submit">查询</button>
+</form>
 
 <h2>订单条目（示例）</h2>
 <table>
