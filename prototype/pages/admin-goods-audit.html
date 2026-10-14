@@ -16,7 +16,10 @@
   <tr><th>商品ID</th><th>标题</th><th>状态</th><th>操作</th></tr>
   <tr><td>1003</td><td>代抢讲座名额（违规）</td><td>在售</td><td><button>下架（必填原因 10-200 字）</button></td></tr>
 </table>
+<form>
 <label>下架/驳回原因：<textarea rows="2" placeholder="10-200 字，对卖家可见，写入 admin_op_log"></textarea></label>
+<button type="submit">提交操作（写操作日志）</button>
+</form>
 <p class="hint">流转：待审核→通过→在售；待审核→驳回→草稿（卖家改后重提）；在售→违规下架→已下架。关键操作全部写操作日志。</p>
 <p><a href="admin-oplog.html">→ 查看操作日志</a></p>
 <!-- 对应 report/05 管理员审核与违规下架条目（US-07） -->
