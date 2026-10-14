@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8"><title>登录页 · 校园二手交易平台</title>
+<style>body{font-family:-apple-system,"PingFang SC",sans-serif;max-width:420px;margin:32px auto;padding:0 16px}h1{font-size:18px}label{display:block;margin-top:12px;font-size:14px}input{width:100%;padding:8px;box-sizing:border-box;margin-top:4px}button,a.btn{display:inline-block;margin-top:16px;padding:8px 18px;background:#0a66c2;color:#fff;text-decoration:none;border:none;font-size:14px}p.hint{font-size:13px;color:#777}a.back{font-size:13px}.tabs span{margin-right:16px;font-weight:bold}</style></head>
+<body>
+<a class="back" href="../index.html">← 返回原型入口</a>
+<h1>登录页</h1>
+<p class="tabs"><span>密码登录</span><span>验证码登录</span></p>
+<form>
+  <label>手机号<input type="tel" placeholder="请输入手机号" required></label>
+  <label>密码<input type="password" required></label>
+  <button type="submit">登录</button>
+</form>
+<p class="hint">登录成功按角色跳转：普通用户 → <a href="goods-list.html">首页（商品列表）</a>；平台管理员 → <a href="admin-login.html">PC 管理端登录入口</a>。连续输错 5 次锁定 30 分钟；封禁账号提示封禁原因摘要与申诉入口。</p>
+<p class="hint"><a href="auth-register.html">注册新账号</a> ｜ <a href="auth-findpwd.html">忘记密码</a></p>
+<!-- 对应 report/04 登录条目（US-02）：手机号+密码或验证码登录，JWT 鉴权 -->
+</body>
+</html>

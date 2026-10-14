@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8"><title>操作日志 · 管理端</title>
+<style>body{font-family:-apple-system,"PingFang SC",sans-serif;max-width:820px;margin:32px auto;padding:0 16px;font-size:14px}h1{font-size:18px}table{border-collapse:collapse;width:100%;margin-top:12px}td,th{border:1px solid #ccc;padding:6px 8px;text-align:left}p.hint{font-size:13px;color:#777}a.back{font-size:13px}</style></head>
+<body>
+<a class="back" href="../index.html">← 返回原型入口</a> ｜ <a href="admin-login.html">返回管理端登录</a>
+<h1>管理员操作日志（只读）</h1>
+<table>
+  <tr><th>时间</th><th>操作人</th><th>动作</th><th>目标类型</th><th>目标ID</th><th>详情</th></tr>
+  <tr><td>2026-10-14 10:21</td><td>管理员001</td><td>封禁用户</td><td>user</td><td>2</td><td>发布违规代抢信息，经核实封禁</td></tr>
+  <tr><td>2026-10-14 10:25</td><td>管理员001</td><td>下架商品</td><td>goods</td><td>1003</td><td>违规代抢服务，下架原因已通知卖家</td></tr>
+  <tr><td>2026-10-14 11:02</td><td>管理员001</td><td>解封用户</td><td>user</td><td>2</td><td>用户申诉成立，解封</td></tr>
+</table>
+<p class="hint">按时间倒序分页展示（page/pageSize）；日志只读、不可修改删除；数据来源 admin_op_log 表。</p>
+<!-- 对应 report/04 操作日志条目（US-07/US-08） -->
+</body>
+</html>
