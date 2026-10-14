@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>商品详情 - 校园二手交易平台原型</title>
+<style>
+  body{font-family:sans-serif;max-width:480px;margin:0 auto;padding:12px}
+  .pic{border:1px dashed #999;padding:24px;text-align:center;color:#666}
+  .price{color:#c00;font-size:20px;font-weight:bold}
+  .btn{display:inline-block;border:1px solid #333;padding:6px 14px;margin:4px;text-decoration:none}
+</style>
+</head>
+<body>
+<h2>商品详情</h2>
+<p><a href="goods-list.html">&lt; 返回列表</a></p>
+
+<!-- 主图轮播（静态占位，最多6张，第一张为主图）：对应 report/05 功能条目3 -->
+<div class="pic">[主图占位 ｜ ○○●○○○ 共4张]</div>
+
+<!-- 商品信息（只读展示项）：对应 report/05 4.2 商品详情页 -->
+<p class="price">¥15.00 <span style="color:#666;font-size:12px">（可议价）</span></p>
+<p><strong>《数据结构（C语言版）》教材，九成新</strong></p>
+<p>分类：教材书籍 / 专业课教材 ｜ 库存：1</p>
+<p>卖家：小林同学 ｜ 发布时间：2026-10-13 20:31 ｜ 状态：<span style="color:green">在售</span></p>
+<p><strong>商品描述：</strong></p>
+<p>大二上学期用书，无笔记无划线，封皮轻微磨损。教材书籍/专业课教材分类，校内面交优先。</p>
+
+<!-- 操作区：游客/买家视角。流转：加入购物车 → cart.html（周子航·购物交易侧） -->
+<p>
+  <a class="btn" href="cart.html">加入购物车</a>
+  <a class="btn" href="cart.html">立即购买</a>
+</p>
+
+<!-- 卖家本人查看时按钮区替换（不显示购买按钮）：对应 report/05 4.2 异常分支与条目4/5 -->
+<p style="border:1px dotted #999;padding:8px">
+  [卖家本人视角] <a class="btn" href="goods-publish.html">编辑</a> <a class="btn" href="goods-mine.html">下架</a>
+</p>
+
+<!-- 未登录提示分支：点"加入购物车"→提示"请先登录"→跳登录页 auth-login.html（组长·用户及权限侧） -->
+<p><a href="auth-login.html">[游客点购买 → 去登录]</a></p>
+
+<!-- 对应 report/05 功能条目1/3/4/5、4.2 商品详情页说明、US-03/US-06；页面流转见 4.4 总览 -->
+</body>
+</html>
