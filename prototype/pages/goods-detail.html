@@ -25,11 +25,15 @@
 <p><strong>商品描述：</strong></p>
 <p>大二上学期用书，无笔记无划线，封皮轻微磨损。教材书籍/专业课教材分类，校内面交优先。</p>
 
-<!-- 操作区：游客/买家视角。流转：加入购物车 → cart.html（周子航·购物交易侧） -->
-<p>
-  <a class="btn" href="cart.html">加入购物车</a>
-  <a class="btn" href="cart.html">立即购买</a>
-</p>
+<!-- 操作区：游客/买家视角。流转：加入购物车 → cart.html（周子航·购物交易侧）。
+     数量选择弹层（1-库存步进）对应 report/05 4.2 "输入项：无（只读页 + 数量选择弹层）" -->
+<form>
+  <p>购买数量：<input type="number" min="1" max="1" value="1" step="1">（库存 1，步进 1-库存）</p>
+  <p>
+    <a class="btn" href="cart.html">加入购物车</a>
+    <a class="btn" href="cart.html">立即购买</a>
+  </p>
+</form>
 
 <!-- 卖家本人查看时按钮区替换（不显示购买按钮）：对应 report/05 4.2 异常分支与条目4/5 -->
 <p style="border:1px dotted #999;padding:8px">
