@@ -1,9 +1,10 @@
 # 贡献指南（Git 团队协作规约）
 
+> 东南大学 计算机科学与技术专业 · 软件开发综合课程设计
 > 本规约依据《DESIGN.md》§10 与课程第 1 课《Git 协作规约》要求制定，全组三人共同遵守。
 > 答辩与报告评分均以 Git 提交记录为佐证：提交记录本身就是个人工作量的考核依据，请认真规范地留下痕迹。
 
-小组（校园二手物品交易平台）｜成员：王明（组长）、万佰鑫、周子航
+小组（校园二手物品交易平台）｜成员：张雨薇（组长）、万佰鑫、周子航
 
 ## 1. 分支命名规则（三级分支）
 
@@ -11,7 +12,7 @@
 |---|---|---|
 | `main` | 验收稳定版，最终答辩版本放这里 | 禁止直接修改/推送，只能由 `develop` 合并进入 |
 | `develop` | 开发主干，整合各组员功能 | 功能分支完成并自测通过后合并进来 |
-| `feature/模块名-姓名缩写` | 个人功能分支 | 例如 `feature/user-wang`（王明·用户及权限）、`feature/product-zhangsan`（万佰鑫·商品发布）、`feature/trade-lisi`（周子航·购物交易） |
+| `feature/模块名-姓名缩写` | 个人功能分支 | 例如 `feature/user-wang`（张雨薇·用户及权限）、`feature/product-zhangsan`（万佰鑫·商品发布）、`feature/trade-lisi`（周子航·购物交易） |
 
 功能分支四步流程：
 
@@ -60,7 +61,7 @@
 
 | 成员 | 名下文件 |
 |---|---|
-| 王明（组长） | CONTRIBUTING.md、软件需求分析报告.md（索引）、report/01、02、04、CHANGELOG.md、工作日志.md、tools/validate_report.py |
+| 张雨薇（组长） | CONTRIBUTING.md、软件需求分析报告.md（索引）、report/01、02、04、CHANGELOG.md、工作日志.md、tools/validate_report.py |
 | 万佰鑫 | report/03、report/05、report/08、report/工作记录-zhangsan.md |
 | 周子航 | report/06、report/07、report/09、report/工作记录-lisi.md |
 
