@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>商品列表 - 校园二手交易平台原型</title>
+<style>
+  body{font-family:sans-serif;max-width:480px;margin:0 auto;padding:12px}
+  .bar{border:1px solid #999;padding:8px;margin-bottom:8px}
+  .card{border:1px solid #ccc;padding:8px;margin-bottom:6px}
+  .price{color:#c00;font-weight:bold}
+</style>
+</head>
+<body>
+<h2>商品列表</h2>
+<p><a href="../index.html">&lt; 返回首页</a> ｜ <a href="goods-publish.html">去发布</a> ｜ <a href="goods-mine.html">我的商品</a> ｜ <a href="cart.html">购物车</a></p>
+
+<!-- 筛选栏：对应 report/05 功能条目6（按分类与关键词浏览搜索，MySQL LIKE/索引） -->
+<div class="bar">
+  <p>分类：
+    <select><option>全部</option><option>教材书籍</option><option>数码电子</option><option>生活用品</option><option>运动户外</option><option>服饰鞋包</option><option>美妆个护</option></select>
+    &gt;
+    <select><option>全部二级</option><option>专业课教材</option><option>考研考公</option><option>手机</option><option>电脑</option></select>
+  </p>
+  <p>关键词：<input type="text" placeholder="搜标题/描述，如：数据结构"> <button>搜索</button></p>
+  <p>排序：<select><option>默认（最新发布）</option><option>价格从低到高</option><option>价格从高到低</option></select></p>
+</div>
+
+<!-- 商品卡片（静态示例数据） -->
+<div class="card">
+  <p><a href="goods-detail.html">《数据结构（C语言版）》教材，九成新</a></p>
+  <p class="price">¥15.00 ｜ 教材书籍/专业课教材 ｜ 库存1</p>
+  <p>卖家：小林同学 ｜ 2026-10-13 发布</p>
+</div>
+<div class="card">
+  <p><a href="goods-detail.html">小米台灯 Pro，宿舍自用转让</a></p>
+  <p class="price">¥39.00 ｜ 生活用品/小家电 ｜ 库存1</p>
+  <p>卖家：小雨 ｜ 2026-10-13 发布</p>
+</div>
+<div class="card">
+  <p><a href="goods-detail.html">捷安特山地自行车，毕业急出</a></p>
+  <p class="price">¥260.00 ｜ 运动户外/自行车 ｜ 库存1</p>
+  <p>卖家：小航 ｜ 2026-10-12 发布</p>
+</div>
+
+<p>分页：[上一页] 第 1/5 页 [下一页]</p>
+
+<!-- 对应 report/05 功能条目6（按分类与关键词浏览搜索）、US-04；下单流转：点击商品卡进入 goods-detail.html -->
+</body>
+</html>
