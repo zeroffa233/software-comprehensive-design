@@ -1,5 +1,7 @@
 # 课程材料（非项目交付物）
 ppt/
+docs/
+examples/
 
 # 隔离的 git worktree（本地多分支工作区）
 .worktrees/
