@@ -3,6 +3,12 @@
 > **东南大学 计算机科学与技术专业 · 软件开发综合课程设计** ｜ 校园二手物品交易平台）
 > 记录每次提交/合并的要点。时间：2026-10-14（需求分析阶段 v1.0/v1.0.1/v1.0.2、设计准备阶段 v1.1）。
 
+## 2026-10-18 v1.1.4 原型截图入报告与交付包重打包（课次 4 交付）
+
+- 按课次 4 交付要求，16 张原型页面截图（1280×900 无头 Chrome 实截，渲染质检通过）入库 `report/images/prototype/`，并插入《软件需求分析报告》对应章节"本模块原型页面说明"小节（每图前配一行说明文字，相对路径引用，不改写报告现有内容）：第四章 6 张（auth-register/auth-login/auth-findpwd/admin-login/admin-user-manage/admin-oplog，其中找回密码与管理端三页归入新增小节 §4.5）、第五章 5 张（goods-list/goods-detail/goods-publish/goods-mine/admin-goods-audit，列表页与审核页归入新增小节 §4.5）、第六章 3 张（cart/order-confirm/order-list）；index 原型入口总览图插在第四章 §4 开头（报告首次介绍原型交付处）。auth-profile.png 已入库未插入（第四章个人中心小节本轮不配图）。
+- `原型交付包.zip` 从当前 prototype/ 全量重打（19 个文件）替换仓库根目录旧包，消除旧包残留的"第X组"占位文案（当前口径为"小组"）；打包后自校验：解压 grep 无"第X组/第 X 组"，zip 内文件与 prototype/ 逐字节 diff 为空；sha256 = `8cb5ac5a91a6963174a47159493c48301366102acf3b5d096ba246a1a5aa5e78`。
+- 阶段校验复跑全绿：validate_report.py 8/8、validate_phase2.py 11/11。本次仅改文档与打包，未动 server-*、miniprogram、admin-web、prototype 页面本体与图片文件。
+
 ## 2026-10-15 v1.1.3 分工明确
 
 - 明确万佰鑫为**核心开发**：商品发布模块全栈之外，四端工程脚手架规划、tools/validate_phase2.py、项目 README 主笔均归属其名下（对应历史提交的提交者已按实际分工更正）。
