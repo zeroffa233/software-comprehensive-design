@@ -1,0 +1,31 @@
+.fp-card {
+  padding: 48rpx 40rpx;
+  margin-top: 40rpx;
+}
+.fp-title {
+  font-size: 40rpx;
+  font-weight: 600;
+  text-align: center;
+  color: #0a66c2;
+  margin-bottom: 16rpx;
+}
+.fp-tip {
+  margin-bottom: 32rpx;
+  line-height: 1.6;
+}
+.sms-row {
+  display: flex;
+  align-items: center;
+}
+.sms-input {
+  flex: 1;
+}
+.sms-btn {
+  margin-left: 16rpx;
+  flex-shrink: 0;
+}
+.fp-links {
+  text-align: center;
+  margin-top: 32rpx;
+  font-size: 26rpx;
+}

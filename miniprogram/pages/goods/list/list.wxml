@@ -1,0 +1,50 @@
+<view class="container">
+  <!-- 筛选栏 -->
+  <view class="card filter-card">
+    <view class="filter-row">
+      <view class="filter-label">分类</view>
+      <picker class="filter-picker" mode="selector" range="{{topNames}}" value="{{topIndex}}" bindchange="onTopCategoryChange">
+        <view class="picker-value">{{topNames[topIndex]}}</view>
+      </picker>
+      <text class="filter-sep">›</text>
+      <picker class="filter-picker" mode="selector" range="{{secondNames}}" value="{{secondIndex}}" disabled="{{secondDisabled}}" bindchange="onSecondCategoryChange">
+        <view class="picker-value {{secondDisabled ? 'picker-disabled' : ''}}">{{secondNames[secondIndex]}}</view>
+      </picker>
+    </view>
+    <view class="filter-row">
+      <view class="filter-label">排序</view>
+      <picker class="filter-picker" mode="selector" range="{{sortLabels}}" value="{{sortIndex}}" bindchange="onSortChange">
+        <view class="picker-value">{{sortLabels[sortIndex]}}</view>
+      </picker>
+    </view>
+    <view class="search-row">
+      <input class="form-input search-input" placeholder="搜标题/描述，如：数据结构" value="{{keyword}}" bindinput="onKeyword" confirm-type="search" bindconfirm="onSearch" />
+      <button class="btn btn-primary search-btn" size="mini" bindtap="onSearch">搜索</button>
+    </view>
+  </view>
+
+  <!-- 商品卡片列表 -->
+  <view class="goods-card card" wx:for="{{goodsList}}" wx:key="id" bindtap="goDetail" data-id="{{item.id}}">
+    <image class="goods-img" src="{{item.mainImage}}" mode="aspectFill" />
+    <view class="goods-info">
+      <view class="goods-title">{{item.title}}</view>
+      <view class="goods-price-row">
+        <text class="price goods-price">¥{{item.price}}</text>
+        <text class="muted">{{item.categoryName}} ｜ 库存{{item.stock}}</text>
+      </view>
+      <view class="muted">{{item.createTime}} 发布</view>
+    </view>
+  </view>
+
+  <view class="empty" wx:if="{{loaded && goodsList.length === 0}}">
+    <view class="empty-icon">🛍</view>
+    <view>没有找到相关商品，换个关键词试试</view>
+  </view>
+  <view class="loading" wx:if="{{loading}}">加载中…</view>
+  <view class="loading" wx:if="{{loaded && !hasMore && goodsList.length > 0}}">— 没有更多了 —</view>
+
+  <!-- 底部快捷入口 -->
+  <view class="home-quick">
+    <button class="btn btn-ghost btn-mini" bindtap="goCart">购物车</button>
+  </view>
+</view>

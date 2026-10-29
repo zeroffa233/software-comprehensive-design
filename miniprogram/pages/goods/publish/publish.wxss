@@ -1,0 +1,148 @@
+.cascade-row {
+  display: flex;
+  align-items: center;
+}
+.cascade-picker {
+  flex: 1;
+}
+.picker-value {
+  padding: 10rpx 16rpx;
+  border: 2rpx solid #dcdfe4;
+  border-radius: 8rpx;
+  font-size: 26rpx;
+  background: #fafbfc;
+}
+.picker-disabled {
+  color: #c0c4cc;
+}
+.cascade-sep {
+  margin: 0 12rpx;
+  color: #a0a5ad;
+}
+.inline-row {
+  display: flex;
+  align-items: center;
+}
+.inline-prefix {
+  margin-right: 8rpx;
+  color: #d33;
+  font-weight: 600;
+}
+.inline-input {
+  flex: 1;
+}
+.negotiable {
+  margin-left: 20rpx;
+  flex-shrink: 0;
+}
+.polish-row {
+  display: flex;
+  align-items: center;
+  margin-top: 12rpx;
+}
+.img-grid {
+  display: flex;
+  flex-wrap: wrap;
+}
+.img-cell {
+  position: relative;
+  width: 200rpx;
+  height: 200rpx;
+  margin: 0 16rpx 16rpx 0;
+  border-radius: 12rpx;
+  overflow: hidden;
+}
+.img-thumb {
+  width: 200rpx;
+  height: 200rpx;
+  background: #eef0f3;
+}
+.img-remove {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 44rpx;
+  height: 44rpx;
+  line-height: 40rpx;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  font-size: 30rpx;
+  border-radius: 0 0 0 12rpx;
+}
+.img-main-tag {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  padding: 2rpx 12rpx;
+  background: rgba(10, 102, 194, 0.85);
+  color: #fff;
+  font-size: 20rpx;
+  border-radius: 0 12rpx 0 0;
+}
+.img-add {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 2rpx dashed #c0c4cc;
+  background: #fafbfc;
+}
+.img-add-disabled {
+  opacity: 0.5;
+}
+.img-add-plus {
+  font-size: 56rpx;
+  color: #a0a5ad;
+  line-height: 1.1;
+}
+.mask {
+  position: fixed;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.confirm-pop {
+  width: 600rpx;
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 40rpx 32rpx;
+  box-sizing: border-box;
+}
+.confirm-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 20rpx;
+}
+.confirm-body {
+  text-align: center;
+  margin-bottom: 10rpx;
+}
+.confirm-btns {
+  display: flex;
+  margin-top: 32rpx;
+}
+.confirm-btn {
+  flex: 1;
+  height: 76rpx;
+  line-height: 76rpx;
+}
+.confirm-btn:first-child {
+  margin-right: 20rpx;
+}
+.polish-text {
+  background: #f5f7fa;
+  border-radius: 12rpx;
+  padding: 20rpx;
+  font-size: 26rpx;
+  line-height: 1.7;
+  max-height: 400rpx;
+  overflow-y: scroll;
+}

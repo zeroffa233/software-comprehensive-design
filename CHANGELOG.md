@@ -3,6 +3,17 @@
 > **东南大学 计算机科学与技术专业 · 软件开发综合课程设计** ｜ 校园二手物品交易平台）
 > 记录每次提交/合并的要点。时间：2026-10-14（需求分析阶段 v1.0/v1.0.1/v1.0.2、设计准备阶段 v1.1）。
 
+## 2026-10-29 v2.0.0 四端工程实现（对照验收标准）
+
+- **server-springboot**（:8080）：39 契约端点逐字实现（auth 14/goods 13/trade 11 + 对齐追加 GET /admin/goods、svc-token），Java 17 + MyBatis-Plus + JWT(uid/role)+Redis 会话 + @RequireRole AOP + @AdminOp 日志切面 + 全局异常(错误码逐项)；10 张表 schema/seed 幂等随启动执行；Redis 商品缓存 TTL 60s 变更逐出；下单价格快照/requestId 幂等(uk_request)/条件 UPDATE 防超卖/30 分钟未支付自动取消；端点 curl 校验 101/101 绿。
+- **server-fastapi**（:8100）：Agent 对话真入口，doubao-seed-2.0-mini 真 LLM（凭证经环境变量注入，不入库）+ 规则引擎降级；SK-001 查商品/SK-002 发布辅助/SK-003 订单查询只读白名单，agent-svc 令牌+X-User-Id 属主校验，越权 4003；Redis 多轮会话上下文（追问链式命中）；agent_chat_log 真实留痕。
+- **admin-web**（:5173）：Vue3 + Vite + Element Plus 四页（审核/用户/日志/登录）+ 登录守卫 + {code,msg,data} 拦截器；真实浏览器 E2E 全流程通过（登录→审核通过/驳回/违规下架→封禁/解封→日志留痕→401 处理）。
+- **miniprogram**：原生小程序 12 页（11 业务页 + Agent 助手 Tab），request 封装（Bearer/解包/401 reLaunch）；Node 桥 shim 契约测试 3 套件全过（端点对照 30/30 零偏差）+ 直连真实后端冒烟通过。
+- **基础设施**：Docker 容器 campus-mysql(MySQL 8 utf8mb4)/campus-redis(Redis 7)；集成冒烟脚本 28 项全绿（全链路：游客浏览→注册→购物车→下单支付→确认收货→发布→审核→日志→Agent 三场景→错误码抽检）。
+- **压测达标 NFR-01**：tools/stress_test.py，50 并发×3000 请求，吞吐 4424 req/s，p50=7ms/**p95=16ms**/p99=147ms，零错误。
+- **缺陷闭环**：D1 订单号 COUNT+1 序号撞号（删行留洞）→ 改 MAX+1 递增，冒烟复验通过；D2 JWT 401 提前返回缺 CORS 头 → 过滤器顺序修复；D3 小程序 7 处 require 深度错误 → 修正。详见《测试报告.md》。
+- validate_report.py 8/8、validate_phase2.py 11/11 复跑全绿。
+
 ## 2026-10-18 v1.1.4 原型截图入报告与交付包重打包（课次 4 交付）
 
 - 按课次 4 交付要求，16 张原型页面截图（1280×900 无头 Chrome 实截，渲染质检通过）入库 `report/images/prototype/`，并插入《软件需求分析报告》对应章节"本模块原型页面说明"小节（每图前配一行说明文字，相对路径引用，不改写报告现有内容）：第四章 6 张（auth-register/auth-login/auth-findpwd/admin-login/admin-user-manage/admin-oplog，其中找回密码与管理端三页归入新增小节 §4.5）、第五章 5 张（goods-list/goods-detail/goods-publish/goods-mine/admin-goods-audit，列表页与审核页归入新增小节 §4.5）、第六章 3 张（cart/order-confirm/order-list）；index 原型入口总览图插在第四章 §4 开头（报告首次介绍原型交付处）。auth-profile.png 已入库未插入（第四章个人中心小节本轮不配图）。

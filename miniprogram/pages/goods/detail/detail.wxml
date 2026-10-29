@@ -1,0 +1,61 @@
+<view class="container" wx:if="{{goods}}">
+  <!-- 图片轮播（最多 6 张，第一张为主图） -->
+  <swiper class="detail-swiper" indicator-dots circular wx:if="{{goods.images.length > 0}}">
+    <swiper-item wx:for="{{goods.images}}" wx:key="url" bindtap="onImageTap" data-index="{{index}}">
+      <image class="detail-img" src="{{item.url}}" mode="aspectFill" />
+    </swiper-item>
+  </swiper>
+  <view class="detail-img placeholder-img" wx:else>暂无图片</view>
+
+  <!-- 商品信息 -->
+  <view class="card">
+    <view class="detail-price-row">
+      <text class="price detail-price">¥{{goods.price}}</text>
+      <text class="muted" wx:if="{{goods.negotiable}}">（可议价）</text>
+      <text class="tag tag-blue detail-status">{{goods.status}}</text>
+    </view>
+    <view class="detail-title">{{goods.title}}</view>
+    <view class="muted detail-meta">分类：{{categoryPathText}} ｜ 库存：{{goods.stock}}</view>
+    <view class="muted detail-meta">卖家：{{goods.seller.nickname}} ｜ 发布时间：{{goods.createTime}}</view>
+    <view class="form-error" wx:if="{{goods.offShelfReason}}">下架原因：{{goods.offShelfReason}}</view>
+    <view class="divider"></view>
+    <view class="detail-desc-title">商品描述</view>
+    <view class="detail-desc">{{goods.description}}</view>
+  </view>
+
+  <!-- 买家/游客操作区 -->
+  <view class="detail-bar" wx:if="{{!isOwner && goods.status === '在售'}}">
+    <button class="btn btn-ghost bar-btn" bindtap="openNumPicker">加入购物车</button>
+    <button class="btn btn-primary bar-btn" bindtap="openNumPicker">立即购买</button>
+  </view>
+  <view class="muted detail-tip" wx:if="{{!isOwner && goods.status !== '在售'}}">
+    该商品当前状态为「{{goods.status}}」，暂不可购买。
+  </view>
+
+  <!-- 卖家本人操作区（不显示购买按钮） -->
+  <view class="card owner-card" wx:if="{{isOwner}}">
+    <view class="muted owner-tip">[卖家本人视角]</view>
+    <button class="btn btn-ghost btn-mini" bindtap="editGoods">编辑</button>
+    <button class="btn btn-danger btn-mini" wx:if="{{goods.status === '在售'}}" bindtap="offShelf">下架</button>
+  </view>
+
+  <!-- 数量选择弹层 -->
+  <view class="mask" wx:if="{{showNumPicker}}" bindtap="closeNumPicker">
+    <view class="num-pop" catchtap="noop">
+      <view class="num-pop-title">购买数量（库存 {{goods.stock}}）</view>
+      <view class="stepper">
+        <view class="step-btn {{num <= 1 ? 'step-disabled' : ''}}" bindtap="onNumMinus">−</view>
+        <input class="step-input" type="number" value="{{num}}" bindinput="onNumInput" />
+        <view class="step-btn {{num >= goods.stock ? 'step-disabled' : ''}}" bindtap="onNumPlus">＋</view>
+      </view>
+      <button class="btn btn-primary" bindtap="addToCart" disabled="{{submitting}}">加入购物车</button>
+      <button class="btn btn-ghost num-buy-btn" bindtap="buyNow">立即购买</button>
+    </view>
+  </view>
+</view>
+
+<view class="empty" wx:elif="{{notFound}}">
+  <view class="empty-icon">🔍</view>
+  <view>商品不存在或已下架</view>
+</view>
+<view class="loading" wx:else>加载中…</view>

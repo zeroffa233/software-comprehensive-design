@@ -1,0 +1,62 @@
+.mine-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20rpx 24rpx;
+}
+.tab-bar {
+  display: flex;
+  background: #fff;
+  border-radius: 16rpx;
+  margin-bottom: 20rpx;
+  overflow: hidden;
+}
+.tab-item {
+  flex: 1;
+  text-align: center;
+  padding: 20rpx 0;
+  font-size: 26rpx;
+  color: #6b7078;
+  border-bottom: 4rpx solid transparent;
+}
+.tab-item-active {
+  color: #0a66c2;
+  font-weight: 600;
+  border-bottom-color: #0a66c2;
+}
+.mine-row {
+  display: flex;
+}
+.mine-img {
+  width: 140rpx;
+  height: 140rpx;
+  border-radius: 12rpx;
+  background: #eef0f3;
+  flex-shrink: 0;
+}
+.mine-info {
+  flex: 1;
+  margin-left: 20rpx;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.mine-title {
+  font-size: 28rpx;
+  font-weight: 500;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+  overflow: hidden;
+}
+.mine-price-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+.mine-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}

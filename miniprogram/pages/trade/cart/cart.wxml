@@ -1,0 +1,46 @@
+<view class="container">
+  <block wx:if="{{items.length > 0}}">
+    <view class="card cart-toolbar">
+      <label>
+        <checkbox checked="{{allChecked}}" bindtap="onToggleAll" />
+        <text class="muted"> 全选</text>
+      </label>
+      <text class="muted">共 {{items.length}} 种商品</text>
+    </view>
+
+    <view class="card cart-item" wx:for="{{items}}" wx:key="goodsId">
+      <view class="cart-check">
+        <checkbox checked="{{item.checked}}" bindtap="onToggle" data-index="{{index}}" />
+      </view>
+      <image class="cart-img" src="{{item.mainImage}}" mode="aspectFill" bindtap="goDetail" data-goodsid="{{item.goodsId}}" />
+      <view class="cart-info">
+        <view class="cart-title" bindtap="goDetail" data-goodsid="{{item.goodsId}}">{{item.title}}</view>
+        <view class="muted">单价 <text class="price">¥{{item.unitPrice}}</text> ｜ 库存 {{item.stock}}</view>
+        <view class="cart-bottom">
+          <view class="stepper">
+            <view class="step-btn {{item.num <= 1 ? 'step-disabled' : ''}}" bindtap="onMinus" data-index="{{index}}">−</view>
+            <view class="step-num">{{item.num}}</view>
+            <view class="step-btn {{item.num >= item.stock ? 'step-disabled' : ''}}" bindtap="onPlus" data-index="{{index}}">＋</view>
+          </view>
+          <text class="cart-remove" bindtap="onRemove" data-index="{{index}}">移除</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 底部结算栏 -->
+    <view class="cart-bar">
+      <view class="cart-bar-left">
+        <text>已选 {{selectedCount}} 件，合计 </text>
+        <text class="price cart-total">¥{{totalPrice}}</text>
+      </view>
+      <button class="btn btn-primary cart-checkout-btn" bindtap="checkout">去结算</button>
+    </view>
+  </block>
+
+  <view class="empty" wx:if="{{loaded && items.length === 0}}">
+    <view class="empty-icon">🛒</view>
+    <view>购物车空空如也</view>
+    <button class="btn btn-ghost empty-btn" bindtap="goHome">继续逛逛</button>
+  </view>
+  <view class="loading" wx:if="{{loading}}">加载中…</view>
+</view>

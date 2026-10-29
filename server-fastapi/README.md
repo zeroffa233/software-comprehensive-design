@@ -1,41 +1,74 @@
-# server-fastapi · 数据/AI 服务脚手架规划
+# server-fastapi · Agent 服务（已实现）
 
 > 东南大学 计算机科学与技术专业 · 软件开发综合课程设计 ｜ 小组
-> **脚手架规划，业务编码待数据库/接口定稿后开始。**
+> FastAPI Agent 服务（:8100）——Agent 对话真入口，按 report §9 / DESIGN.md §7 实现 Skill-MCP 链路。
 
-## 技术栈
+## 技术栈（已落地）
 
-Python 3.11 + FastAPI + Pydantic + SQLAlchemy 2.0 + MySQL 8.0（只读分析 + Agent-Skill-MCP）。
+Python 3.11+ · FastAPI · Pydantic v2 · SQLAlchemy 2.0 · PyMySQL · httpx · Redis · PyJWT
 
-## 规划目录结构
+## 运行
+
+```bash
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env   # 按需修改；真实 .env 不入库
+uvicorn app.main:app --host 0.0.0.0 --port 8100
+# 健康检查 GET /health → {"status":"ok","springbootReady":...,"llmMode":...}
+```
+
+所有密钥/凭证一律从环境变量读取（`.env` 或进程 env），严禁写入任何入库文件：
+`DB_URL` `REDIS_URL` `JWT_SECRET` `SPRINGBOOT_BASE_URL` `AGENT_SVC_PHONE/PASSWORD`
+（或直接预置 `AGENT_SVC_TOKEN`）、`LLM_API_KEY` `LLM_BASE_URL` `LLM_MODEL`。
+
+## 已实现能力
+
+- **POST /api/v1/agent/chat**：入参 `{prompt(≤1000), requestId}`；用户上下文双通道兼容——
+  直连时 `Authorization: Bearer {用户JWT}`（HS256 验签，密钥与 SpringBoot 共享），
+  SpringBoot 代理转发时读 `X-User-Id` 头（代理侧已鉴权）；无上下文返回 401。
+- **多轮对话**：Redis `agent:session:{uid}`，TTL 30min，保留最近 10 轮；支持追问与省略
+  主语（先问"我的订单"再问"第二个呢"→ 命中上一轮 Skill 与结果列表）。
+- **Skill 分发（仅 report §9 清单内 3 项，只读/低风险）**：
+  - SK-001 商品信息查询 → SpringBoot `GET /api/v1/goods`（在售、分类/关键词、分页）；
+  - SK-002 商品发布辅助 → 润色标题/描述、推荐分类，仅生成建议文本，绝不落库（草稿 >2000 字 → 4001）；
+  - SK-003 订单状态查询 → SpringBoot `GET /api/v1/orders` / `/api/v1/orders/{orderNo}`
+    （`X-User-Id` 属主校验，仅查本人订单）；
+  - 越权/超清单操作（删除、下架、支付、查他人订单等）一律 `4003`；参数非法 `4001`；
+    业务失败 `5000`；每次调用（含被拦截）落 `agent_chat_log`（user_id/prompt/response/
+    skill_name/status: OK|DENIED|ERROR；若表存在 request_id/elapsed_ms 扩展列则一并写入）。
+- **MCP 报文**：`request_id / service_account=agent-svc / skill_id / params(含 user_id) / timestamp`，
+  错误码 4001/4003/5000（report §9 §3.2）。
+- **LLM 接入**：OpenAI 兼容协议 httpx 直调（env `LLM_API_KEY/LLM_BASE_URL/LLM_MODEL`），
+  两段式——意图决策（会话历史一并送模型）+ 基于 Skill 实时取回的真实业务数据组织回复；
+  未配置 key 或调用失败时回退**内置规则引擎**（关键词意图识别 + 序号指代消解 + 模板回复，
+  真实可用非占位，回复末尾如实标注"规则模式"）。业务数据一律实时调 SpringBoot，无任何硬编码假数据。
+- **agent-svc 服务令牌**：优先 env 预置令牌，否则启动后向 SpringBoot `POST /api/v1/auth/login`
+  换取 role=AGENT_SVC 服务令牌并缓存（401 自动重取）；SpringBoot 未就绪时后台轮询等待
+  （≤600s），就绪前 Skill 调用惰性重试。
+
+## HTTP 状态码约定
+
+`401`（未登录/Token 失效）与 `400`（参数非法）同时反映在 HTTP 状态码与响应体 code；
+`4001/4003/5000` 为业务级 Agent 错误码，HTTP 200、以响应体 `code` 表达（与总则 §3 一致）。
+
+## 目录结构
 
 ```
 server-fastapi/
 ├── app/
-│   ├── main.py          # FastAPI 入口
-│   ├── core/            # 配置（.env 读环境变量，严禁入库）、安全
-│   ├── agent/           # Agent 编排：自然语言 → Skill 选择 → MCP 报文组装
-│   ├── skills/          # SK-001 商品查询 / SK-002 发布辅助 / SK-003 订单查询（鉴权后转发 /api/v1）
-│   ├── mcp/             # MCP 报文模型（request_id, service_account, skill_id, params, timestamp）与错误码 4001/4003/5000
-│   └── analysis/        # 数据分析（初稿 · 待课次4校准）
+│   ├── main.py            # FastAPI 入口：/health、POST /api/v1/agent/chat、鉴权解析
+│   ├── core/              # config(env) / security(JWT) / db(agent_chat_log) / redis / springboot 客户端
+│   ├── agent/             # orchestrator 编排 / llm(OpenAI 兼容) / rules(规则引擎) / session(Redis 多轮)
+│   ├── skills/            # SK-001 商品查询 / SK-002 发布辅助 / SK-003 订单查询 + 注册表
+│   └── mcp/               # MCP 报文模型、4001/4003/5000
 ├── requirements.txt
-└── .env.example         # 仅示例，真实 .env 不入库
+└── .env.example           # 仅示例，真实 .env 不入库
 ```
-
-## 依赖清单（规划）
-
-- fastapi、uvicorn[standard]
-- pydantic、sqlalchemy、pymysql
-- httpx（转发业务 API）、python-dotenv
-
-## 环境准备步骤
-
-1. Python 3.11 + `python -m venv .venv && source .venv/bin/activate`；
-2. `pip install -r requirements.txt`；
-3. 复制 `.env.example` → `.env`（数据库连接、agent-svc 凭证；.gitignore 已挡 .env）；
-4. `uvicorn app.main:app --reload --port 8100`；健康检查 `GET /health`。
 
 ## 与主服务的关系
 
-- Agent 链路：用户自然语言 → 本服务 Agent → MCP 报文 → Skill 层先鉴权（agent-svc，仅 DESIGN.md §7 清单内允许操作）→ 转发 SpringBoot `/api/v1/` 业务接口；
-- 所有调用写 `agent_chat_log`（服务账号、Skill 名、入参、时间、结果），越权指令一律 4003。
+- Agent 链路：小程序 → SpringBoot `POST /api/v1/agent/chat`（薄代理，携带 `X-User-Id`）→ 本服务
+  → MCP 报文 → Skill 鉴权 → 转发 SpringBoot `/api/v1/` 业务接口 → 留痕 `agent_chat_log`。
+- 本服务对 campus_market 库**只读写 `agent_chat_log` 一张表**，业务数据全部实时经 SpringBoot 获取。
+- 越权指令一律 4003 并留痕（status=DENIED）。
+

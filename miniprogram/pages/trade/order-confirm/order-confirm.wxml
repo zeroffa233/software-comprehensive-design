@@ -1,0 +1,43 @@
+<view class="container" wx:if="{{items.length > 0}}">
+  <!-- 收货信息（第一版简化为文本备注，不做地址库） -->
+  <view class="card">
+    <view class="section-title">收货备注（选填，≤100 字）</view>
+    <textarea class="form-textarea" maxlength="100" placeholder="如：放到宿舍楼下快递柜" value="{{remark}}" bindinput="onRemark" />
+  </view>
+
+  <!-- 商品清单（下单时刻价格快照） -->
+  <view class="card">
+    <view class="section-title">商品清单</view>
+    <view class="confirm-item" wx:for="{{items}}" wx:key="goodsId">
+      <view class="confirm-title">{{item.title}}</view>
+      <view class="confirm-line muted">
+        单价 <text class="price">¥{{item.unitPrice}}</text> × {{item.num}} ＝ 小计 <text class="price">¥{{item.subtotalText}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="confirm-line">支付方式：模拟支付（第一版仅此一项）</view>
+    <view class="confirm-line">合计应付：<text class="price confirm-total">¥{{totalPrice}}</text></view>
+  </view>
+
+  <button class="btn btn-primary" bindtap="openSubmitConfirm" disabled="{{submitting}}">
+    {{submitting ? '提交中…' : '提交订单'}}
+  </button>
+  <button class="btn btn-ghost back-cart-btn" bindtap="goBackCart">返回购物车</button>
+
+  <!-- 模拟支付确认弹窗 -->
+  <view class="mask" wx:if="{{showPay}}">
+    <view class="pay-pop">
+      <view class="pay-title">模拟支付</view>
+      <view class="muted pay-line" wx:for="{{payOrders}}" wx:key="orderNo">
+        {{item.goodsTitle}}（{{item.orderNo}}）
+      </view>
+      <view class="pay-line">共 {{payOrders.length}} 笔订单，应付 <text class="price pay-total">¥{{payTotal}}</text></view>
+      <button class="btn btn-primary" bindtap="confirmPay" disabled="{{paying}}">
+        {{paying ? '支付中…' : '确认支付'}}
+      </button>
+      <button class="btn btn-ghost pay-later-btn" bindtap="dismissPay">暂不支付（30 分钟内有效）</button>
+    </view>
+  </view>
+</view>

@@ -14,5 +14,11 @@ examples/
 .DS_Store
 node_modules/
 target/
+dist/
+.venv/
 __pycache__/
 *.log
+# 后端启动时生成的上传/种子图片（DataInitializer 自动重建）
+server-springboot/uploads/
+# 浏览器验收截图（本地验证产物）
+.shots/
