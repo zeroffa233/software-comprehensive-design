@@ -35,10 +35,14 @@ async def worker(session, paths, latencies, errors):
         await fetch(session, path, latencies, errors)
 
 
-def plan(n):
-    ids = [1, 2, 4, 5, 7, 9, 10, 11, 38, 39, 40, 41, 42]
+async def plan(session):
+    """详情路径的 id 动态取自当前在售列表，避免引用已删除数据。"""
+    ids = []
+    async with session.get(f"{BASE}/goods?page=1&pageSize=50") as resp:
+        data = (await resp.json()).get("data") or {}
+        ids = [g["id"] for g in data.get("list", [])] or [1]
     out = []
-    for i in range(n):
+    for i in range(TOTAL):
         if i % 10 < 7:
             out.append(f"/goods?page={i % 3 + 1}&pageSize=10")
         else:
@@ -47,12 +51,12 @@ def plan(n):
 
 
 async def main():
-    paths = plan(TOTAL)
-    chunks = [paths[i::CONC] for i in range(CONC)]
-    latencies: list[float] = []
-    errors: list = []
     conn = aiohttp.TCPConnector(limit=CONC + 10)
     async with aiohttp.ClientSession(connector=conn, timeout=aiohttp.ClientTimeout(total=30)) as s:
+        paths = await plan(s)
+        chunks = [paths[i::CONC] for i in range(CONC)]
+        latencies: list[float] = []
+        errors: list = []
         t0 = time.perf_counter()
         await asyncio.gather(*(worker(s, c, latencies, errors) for c in chunks))
         wall = time.perf_counter() - t0

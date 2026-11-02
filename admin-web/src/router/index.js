@@ -22,6 +22,12 @@ const routes = [
         meta: { requireAdmin: true, title: '商品审核' }
       },
       {
+        path: 'orders',
+        name: 'OrderManage',
+        component: () => import('../views/OrderManage.vue'),
+        meta: { requireAdmin: true, title: '订单管理' }
+      },
+      {
         path: 'user-manage',
         name: 'UserManage',
         component: () => import('../views/UserManage.vue'),

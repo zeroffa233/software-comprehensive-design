@@ -31,6 +31,12 @@ export function forceOffShelfGoods(id, reason) {
   return request.post(`/admin/goods/${id}/force-off-shelf`, { reason })
 }
 
+// ---------- 订单管理（管理员） ----------
+// design/api-购物交易.md #11：query orderNo?/buyerPhone?/status?/page/pageSize
+export function listAdminOrders(params) {
+  return request.get('/admin/orders', { params })
+}
+
 // ---------- 用户管理 ----------
 // params: { page, pageSize, phone?, nickname?, status? }
 export function listUsers(params) {

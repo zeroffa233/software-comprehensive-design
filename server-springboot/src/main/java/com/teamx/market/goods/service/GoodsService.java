@@ -555,6 +555,10 @@ public class GoodsService {
             m.put("mainImage", mainImages.getOrDefault(g.getId(), ""));
             m.put("categoryId", g.getCategoryId());
             m.put("stock", g.getStock());
+            m.put("freight", g.getFreight());
+            m.put("urgent", g.getUrgent() != null && g.getUrgent() == 1);
+            m.put("viewCount", g.getViewCount());
+            m.put("cartCount", g.getCartCount());
             m.put("createTime", g.getCreateTime());
             m.put("offShelfReason", g.getOffShelfReason());
             return m;

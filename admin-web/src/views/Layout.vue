@@ -6,6 +6,9 @@
         <el-menu-item index="/goods-audit">
           <el-icon><Box /></el-icon><span>商品审核</span>
         </el-menu-item>
+        <el-menu-item index="/orders">
+          <el-icon><Tickets /></el-icon><span>订单管理</span>
+        </el-menu-item>
         <el-menu-item index="/user-manage">
           <el-icon><User /></el-icon><span>用户管理</span>
         </el-menu-item>
@@ -33,7 +36,7 @@
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessageBox } from 'element-plus'
-import { Box, User, Document } from '@element-plus/icons-vue'
+import { Box, User, Document, Tickets } from '@element-plus/icons-vue'
 import { useAuthStore } from '../store/auth'
 import { logout } from '../api'
 

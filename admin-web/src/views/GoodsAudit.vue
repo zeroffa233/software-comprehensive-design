@@ -27,6 +27,20 @@
       <el-table-column label="价格" width="110">
         <template #default="{ row }">￥{{ Number(row.price).toFixed(2) }}</template>
       </el-table-column>
+      <el-table-column label="运费" width="90" align="right">
+        <template #default="{ row }">{{ freightText(row.freight) }}</template>
+      </el-table-column>
+      <el-table-column label="急售" width="80" align="center">
+        <template #default="{ row }">
+          <el-tag v-if="row.urgent === true || row.urgent === 1" type="danger" size="small">急售</el-tag>
+          <span v-else class="muted">—</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="热度" width="140" align="center">
+        <template #default="{ row }">
+          <span class="muted">浏览 {{ row.viewCount ?? '—' }} · 加购 {{ row.cartCount ?? '—' }}</span>
+        </template>
+      </el-table-column>
       <el-table-column prop="status" label="状态" width="90" />
       <el-table-column prop="createTime" label="创建时间" width="170" />
       <el-table-column label="操作" width="230" fixed="right">
@@ -99,6 +113,13 @@ function imgUrl(path) {
   return /^https?:\/\//.test(path) ? path : BACKEND_ORIGIN + path
 }
 
+// 运费：0=包邮；v2.1.0 字段，后端未返回时回退 '—'
+function freightText(v) {
+  const n = Number(v)
+  if (v == null || Number.isNaN(n)) return '—'
+  return n === 0 ? '包邮' : `￥${n.toFixed(2)}`
+}
+
 function onTabChange() {
   page.value = 1
   load()
@@ -168,4 +189,5 @@ function onReasonConfirm(reason, done) {
 
 <style scoped>
 .pager { margin-top: 14px; justify-content: flex-end; }
+.muted { color: #909399; }
 </style>
