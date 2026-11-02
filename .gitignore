@@ -22,3 +22,4 @@ __pycache__/
 server-springboot/uploads/
 # 浏览器验收截图（本地验证产物）
 .shots/
+.vite/
