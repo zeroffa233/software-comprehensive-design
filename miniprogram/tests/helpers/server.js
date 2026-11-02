@@ -81,11 +81,20 @@ function createServer(port) {
       userId: seller.userId,
       seller: { uid: seller.userId, nickname: seller.nickname },
       createTime: '2026-10-20 10:00:00',
-      offShelfReason: null
+      offShelfReason: null,
+      // v2.1 增强：急售/热度/运费（0 = 包邮）
+      urgent: 0,
+      viewCount: 0,
+      cartCount: 0,
+      freight: 0
     });
-    state.goods.push(mkGoods(1, '《数据结构（C语言版）》教材，九成新', '大二上学期用书，无笔记无划线，封皮轻微磨损，校内面交优先。', 15.00, 11, '教材书籍/专业课教材', 3));
-    state.goods.push(mkGoods(2, '小米台灯 Pro，宿舍自用转让', '宿舍自用一年，功能完好，附原装电源线。', 39.00, 31, '生活用品/小家电', 1));
-    state.goods.push(mkGoods(3, '捷安特山地自行车，毕业急出', '毕业急出，刹车已保养，可直接骑行。', 260.00, 41, '运动户外/自行车', 1));
+    const g1 = mkGoods(1, '《数据结构（C语言版）》教材，九成新', '大二上学期用书，无笔记无划线，封皮轻微磨损，校内面交优先。', 15.00, 11, '教材书籍/专业课教材', 3);
+    const g2 = mkGoods(2, '小米台灯 Pro，宿舍自用转让', '宿舍自用一年，功能完好，附原装电源线。', 39.00, 31, '生活用品/小家电', 1);
+    const g3 = mkGoods(3, '捷安特山地自行车，毕业急出', '毕业急出，刹车已保养，可直接骑行。', 260.00, 41, '运动户外/自行车', 1);
+    Object.assign(g1, { viewCount: 128, cartCount: 3 });
+    Object.assign(g2, { viewCount: 56, cartCount: 1, freight: 5 });
+    Object.assign(g3, { urgent: 1, viewCount: 210, cartCount: 8 });
+    state.goods.push(g1, g2, g3);
   }
   seed();
 
@@ -147,7 +156,12 @@ function createServer(port) {
   const isValidPassword = (p) => typeof p === 'string' && p.length >= 8 && p.length <= 20 && /[a-zA-Z]/.test(p) && /\d/.test(p);
 
   function goodsListItem(g) {
-    return { id: g.id, title: g.title, price: g.price, mainImage: g.images[0] ? g.images[0].url : '', categoryName: g.categoryName, stock: g.stock, createTime: g.createTime };
+    return {
+      id: g.id, title: g.title, price: g.price,
+      mainImage: g.images[0] ? g.images[0].url : '',
+      categoryName: g.categoryName, stock: g.stock, createTime: g.createTime,
+      urgent: g.urgent, viewCount: g.viewCount, cartCount: g.cartCount, freight: g.freight
+    };
   }
   function findCategory(id) {
     let name = '';
@@ -314,6 +328,7 @@ function createServer(port) {
     const sort = String(query.sort || '');
     if (sort === 'price,asc') { list.sort((a, b) => a.price - b.price || b.id - a.id); }
     else if (sort === 'price,desc') { list.sort((a, b) => b.price - a.price || b.id - a.id); }
+    else if (sort === 'hot') { list.sort((a, b) => (b.viewCount + b.cartCount * 10) - (a.viewCount + a.cartCount * 10) || b.id - a.id); }
     else { list.sort((a, b) => (a.createTime < b.createTime ? 1 : a.createTime > b.createTime ? -1 : b.id - a.id)); }
     const page = Math.max(1, Number(query.page) || 1);
     const pageSize = Math.min(50, Math.max(1, Number(query.pageSize) || 10));
@@ -362,6 +377,9 @@ function createServer(port) {
     if (!(Number.isInteger(stockN) && stockN >= 1 && stockN <= 99)) { return fail(res, 400, '库存须为 1-99'); }
     if (typeof description !== 'string' || description.length < 10 || description.length > 500) { return fail(res, 400, '描述须 10-500 字'); }
     if (!Array.isArray(imageIds) || imageIds.length < 1 || imageIds.length > 6) { return fail(res, 400, '图片须 1-6 张'); }
+    const freight = body.freight === undefined ? 0 : Number(body.freight);
+    if (!(Number.isFinite(freight) && freight >= 0 && freight <= 50)) { return fail(res, 400, '运费须在 0-50 之间（0 为包邮）'); }
+    const urgent = body.urgent === undefined ? 0 : (body.urgent === 1 || body.urgent === true ? 1 : 0);
     const goods = {
       id: ++state.counters.goodsId,
       title: title, description: description, price: price, negotiable: !!negotiable,
@@ -369,7 +387,8 @@ function createServer(port) {
       images: imageIds.map((id, i) => ({ url: (state.images.get(Number(id)) || {}).url || '/static/img-' + id + '.png', sort: i + 1 })),
       categoryId: cat.id, categoryName: cat.path.join('/'), categoryPath: cat.path,
       userId: user.userId, seller: { uid: user.userId, nickname: user.nickname },
-      createTime: now(), offShelfReason: null
+      createTime: now(), offShelfReason: null,
+      urgent: urgent, viewCount: 0, cartCount: 0, freight: freight
     };
     state.goods.push(goods);
     const result = { goodsId: goods.id, status: '待审核' };
@@ -383,12 +402,14 @@ function createServer(port) {
     const isOwner = user && user.userId === goods.userId;
     const isAdmin = user && user.role === 'ADMIN';
     if (goods.status !== '在售' && !isOwner && !isAdmin) { return fail(res, 404, '商品不存在'); }
+    goods.viewCount = (goods.viewCount || 0) + 1; // 浏览热度
     ok(res, {
       id: goods.id, title: goods.title, description: goods.description,
       price: goods.price, negotiable: goods.negotiable, stock: goods.stock,
       status: goods.status, images: goods.images.map((img) => ({ url: img.url, sort: img.sort })),
       categoryPath: goods.categoryPath, seller: { uid: goods.userId, nickname: goods.seller.nickname },
-      createTime: goods.createTime, offShelfReason: goods.offShelfReason
+      createTime: goods.createTime, offShelfReason: goods.offShelfReason,
+      urgent: goods.urgent, viewCount: goods.viewCount, cartCount: goods.cartCount, freight: goods.freight
     });
   });
 
@@ -403,8 +424,14 @@ function createServer(port) {
     const goods = requireOwnedGoods(res, params, user);
     if (!goods) { return; }
     if (goods.status === '已售出' || goods.status === '已下架') { return fail(res, 409, '当前状态不允许编辑'); }
-    const editable = ['title', 'categoryId', 'price', 'negotiable', 'stock', 'description'];
+    const editable = ['title', 'categoryId', 'price', 'negotiable', 'stock', 'description', 'freight', 'urgent'];
     editable.forEach((k) => { if (body[k] !== undefined) { goods[k] = body[k]; } });
+    if (body.freight !== undefined) {
+      const f = Number(body.freight);
+      if (!(Number.isFinite(f) && f >= 0 && f <= 50)) { return fail(res, 400, '运费须在 0-50 之间（0 为包邮）'); }
+      goods.freight = f;
+    }
+    if (body.urgent !== undefined) { goods.urgent = body.urgent === 1 || body.urgent === true ? 1 : 0; }
     if (body.categoryId !== undefined) {
       const cat = findCategory(Number(body.categoryId));
       if (cat) { goods.categoryId = cat.id; goods.categoryName = cat.path.join('/'); goods.categoryPath = cat.path; }
@@ -437,7 +464,7 @@ function createServer(port) {
     cart.forEach((num, goodsId) => {
       const g = state.goods.find((x) => x.id === goodsId);
       if (g) {
-        list.push({ goodsId: g.id, title: g.title, mainImage: g.images[0] ? g.images[0].url : '', unitPrice: g.price, stock: g.stock, num: num });
+        list.push({ goodsId: g.id, title: g.title, mainImage: g.images[0] ? g.images[0].url : '', unitPrice: g.price, stock: g.stock, freight: g.freight, num: num });
       }
     });
     ok(res, { list: list, totalKinds: list.length });
@@ -454,6 +481,7 @@ function createServer(port) {
     const newNum = (cart.get(goods.id) || 0) + add;
     if (newNum > goods.stock) { return fail(res, 409, '库存不足'); }
     cart.set(goods.id, newNum);
+    goods.cartCount = (goods.cartCount || 0) + 1; // 加购热度
     ok(res, { goodsId: goods.id, num: newNum, kinds: cart.size });
   });
 
@@ -497,17 +525,25 @@ function createServer(port) {
     const dup = state.orders.find((o) => o.buyerId === user.userId && o.goodsId === goods.id && o.status === '待支付');
     if (dup) { return fail(res, 409, '该商品已存在待支付订单', { existOrderNo: dup.orderNo }); }
     const orderNoPrefix = now().slice(0, 10).replace(/-/g, '');
+    const freightAmount = goods.freight || 0;
+    const dealPrice = +(goods.price * n).toFixed(2);
     const order = {
       orderNo: orderNoPrefix + String(++state.counters.orderNo).padStart(5, '0'),
       buyerId: user.userId, sellerId: goods.userId, goodsId: goods.id,
       goodsTitle: goods.title, unitPrice: goods.price,
-      dealPrice: +(goods.price * n).toFixed(2), num: n,
+      dealPrice: dealPrice, num: n,
+      freightAmount: freightAmount,
+      totalAmount: +(dealPrice + freightAmount).toFixed(2),
       remark: remark === undefined || remark === null ? '' : String(remark),
       status: '待支付', createTime: now(), expireAt: '2026-10-29 23:59:59',
       payTime: null, finishTime: null, cancelTime: null
     };
     state.orders.unshift(order);
-    ok(res, { orderNo: order.orderNo, dealPrice: order.dealPrice, status: '待支付', expireAt: order.expireAt }, '下单成功');
+    ok(res, {
+      orderNo: order.orderNo, dealPrice: order.dealPrice,
+      freightAmount: order.freightAmount, totalAmount: order.totalAmount,
+      status: '待支付', expireAt: order.expireAt
+    }, '下单成功');
   });
 
   function findOwnedOrder(res, orderNo, user) {
@@ -556,7 +592,8 @@ function createServer(port) {
     const pageSize = Math.min(50, Math.max(1, Number(query.pageSize) || 10));
     const slice = list.slice((page - 1) * pageSize, page * pageSize).map((o) => ({
       orderNo: o.orderNo, goodsTitle: o.goodsTitle, dealPrice: o.dealPrice,
-      num: o.num, status: o.status, keyTimes: orderTimes(o)
+      num: o.num, status: o.status, keyTimes: orderTimes(o),
+      freightAmount: o.freightAmount, totalAmount: o.totalAmount
     }));
     ok(res, { list: slice, total: list.length, page: page, pageSize: pageSize });
   });
@@ -572,6 +609,7 @@ function createServer(port) {
     ok(res, {
       orderNo: order.orderNo, status: order.status, dealPrice: order.dealPrice,
       num: order.num, remark: order.remark, timeline: timeline,
+      freightAmount: order.freightAmount, totalAmount: order.totalAmount,
       buyerId: order.buyerId, sellerId: order.sellerId
     });
   });
@@ -584,11 +622,47 @@ function createServer(port) {
     }
     let skillName = null;
     let reply = '';
+    let draft = null;
     if (/删除|删了|下架所有|别人的订单|他人订单/.test(prompt)) {
       state.agentLogs.push({ userId: user.userId, prompt: prompt, skillName: null, status: 4003, time: now() });
       return fail(res, 4003, '该操作不在 Agent 可用范围内');
     }
-    if (/润色|文案|分类推荐/.test(prompt)) {
+    if (/下单|买一个|来一件/.test(prompt)) {
+      // SK-006 智能下单草稿：仅生成草稿，真实下单由用户在商品详情页确认
+      skillName = 'SK-006';
+      const hot = state.goods.filter((g) => g.status === '在售')
+        .sort((a, b) => (b.viewCount + b.cartCount * 10) - (a.viewCount + a.cartCount * 10))[0];
+      if (!hot) {
+        reply = '当前没有在售商品，暂时无法生成下单草稿。';
+      } else {
+        draft = {
+          goodsId: hot.id, goodsTitle: hot.title, num: 1,
+          unitPrice: hot.price, freight: hot.freight || 0,
+          totalAmount: +(hot.price + (hot.freight || 0)).toFixed(2)
+        };
+        reply = '根据浏览与加购热度，为你挑选了「' + hot.title + '」（¥' + hot.price.toFixed(2) +
+          (hot.freight > 0 ? '，运费 ¥' + hot.freight : '，包邮') + '）。已生成下单草稿，请确认后真实下单。';
+      }
+    } else if (/比对|对比|比较|两个商品/.test(prompt)) {
+      // SK-004 商品比对
+      skillName = 'SK-004';
+      const hits = state.goods.filter((g) => g.status === '在售').slice(0, 2);
+      reply = hits.length < 2
+        ? '在售商品不足两件，暂无可比对的对象。'
+        : '【商品比对】' + hits.map((g) => '「' + g.title + '」¥' + g.price.toFixed(2) +
+            (g.freight > 0 ? '（运费 ¥' + g.freight + '）' : '（包邮）') +
+            '，浏览 ' + g.viewCount + '/加购 ' + g.cartCount).join('  vs  ') +
+          '。综合价格、运费与热度，热度更高的一件近期更受关注。';
+    } else if (/值不值得|值得买|值吗|买前建议|选购建议/.test(prompt)) {
+      // SK-005 买前建议
+      skillName = 'SK-005';
+      const m = state.goods.find((g) => g.status === '在售' && prompt.indexOf(g.title.slice(0, 4)) !== -1) ||
+        state.goods.filter((g) => g.status === '在售').sort((a, b) => b.viewCount - a.viewCount)[0];
+      reply = m
+        ? '【买前建议】「' + m.title + '」当前 ¥' + m.price.toFixed(2) + (m.freight > 0 ? '，另需运费 ¥' + m.freight : '，包邮') +
+          '，浏览 ' + m.viewCount + ' 次、' + m.cartCount + ' 人加购。' + (m.urgent === 1 ? '卖家标记急售，可尝试议价。' : '价格处于同类平均水平。') + '建议与卖家确认成色后购买。'
+        : '没有找到相关在售商品，换个关键词试试？';
+    } else if (/润色|文案|分类推荐/.test(prompt)) {
       skillName = 'SK-002';
       reply = '【润色建议】' + prompt.replace(/^[\s\S]*?(描述|文案)[:：]?/, '').trim() + '（成色良好，校内面交，支持小刀，诚心要可细聊。）';
     } else if (/订单|支付了吗|发货/.test(prompt)) {
@@ -603,7 +677,21 @@ function createServer(port) {
       reply = '为你找到以下在售商品：' + hits.map((g) => '「' + g.title + '」¥' + g.price.toFixed(2)).join('、') + '。';
     }
     state.agentLogs.push({ userId: user.userId, prompt: prompt, skillName: skillName, status: 0, time: now() });
-    ok(res, { reply: reply, skillName: skillName }, 'success');
+    const payload = { reply: reply, skillName: skillName };
+    if (draft) { payload.draft = draft; }
+    ok(res, payload, 'success');
+  });
+
+  // SK-007 识图：POST /agent/describe-image（multipart image → 标题/描述/分类提示/标签建议）
+  route('POST', '/agent/describe-image', async (req, res, params, body, user) => {
+    if (!body.__hasFile__) { return fail(res, 400, '参数非法：须上传 image 文件'); }
+    state.agentLogs.push({ userId: user.userId, prompt: '(识图)', skillName: 'SK-007', status: 0, time: now() });
+    ok(res, {
+      title: '小米台灯 Pro 九成新宿舍自用',
+      description: '宿舍自用一年，灯罩无划痕，亮度三档可调，附原装电源线，因毕业清仓低价转让。',
+      categoryHint: '小家电',
+      tags: ['台灯', '宿舍', '九成新']
+    }, '识别成功');
   });
 
   // ---- HTTP 入口 ----

@@ -31,7 +31,9 @@
       <view class="order-price-line">
         <text class="price">¥{{item.dealPrice}}</text>
         <text class="muted"> × {{item.num}}</text>
+        <text class="muted order-freight" wx:if="{{item.freightText}}"> ＋ {{item.freightText}}</text>
       </view>
+      <view class="order-total-line" wx:if="{{item.totalAmountText}}">{{item.totalAmountText}}</view>
       <view class="muted" wx:if="{{item.keyTimesText}}">{{item.keyTimesText}}</view>
     </view>
     <view class="divider"></view>
@@ -58,7 +60,8 @@
     <view class="detail-pop" catchtap="noop">
       <view class="detail-title">订单详情</view>
       <view class="muted">订单号：{{detailOrder.orderNo}}</view>
-      <view>金额：¥{{detailOrder.dealPrice}} × {{detailOrder.num}} ｜ 状态：{{detailOrder.status}}</view>
+      <view>金额：¥{{detailOrder.dealPrice}} × {{detailOrder.num}} <text wx:if="{{detailOrder.freightText}}">{{detailOrder.freightText}}</text> ｜ 状态：{{detailOrder.status}}</view>
+      <view class="order-detail-total" wx:if="{{detailOrder.totalAmountText}}">{{detailOrder.totalAmountText}}</view>
       <view class="muted" wx:if="{{detailOrder.remark}}">备注：{{detailOrder.remark}}</view>
       <view class="detail-section">状态流转</view>
       <view class="timeline">

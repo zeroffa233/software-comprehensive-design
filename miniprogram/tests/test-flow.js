@@ -65,6 +65,12 @@ module.exports = async function run(shim) {
   assert.strictEqual(search.total, 1);
   const sorted = await api.get('/goods', { data: { page: 1, pageSize: 10, sort: 'price,desc' } });
   assert.ok(sorted.list[0].price >= sorted.list[1].price, '价格倒序排序生效');
+  // v2.1：热度排序 + 急售/浏览/加购/运费字段
+  const hot = await api.get('/goods', { data: { page: 1, pageSize: 10, sort: 'hot' } });
+  assert.strictEqual(hot.list[0].id, 3, '热度排序首位为浏览+加购最高的商品 3');
+  assert.ok(hot.list.every((g) => typeof g.viewCount === 'number' && typeof g.cartCount === 'number' &&
+    typeof g.freight === 'number' && typeof g.urgent === 'number'), '列表项含 urgent/viewCount/cartCount/freight');
+  assert.strictEqual(hot.list[0].urgent, 1, '急售角标字段');
 
   // —— 详情 ——
   const detail = await api.get('/goods/1');
@@ -72,6 +78,9 @@ module.exports = async function run(shim) {
   assert.strictEqual(detail.seller.nickname, '用户0003', '详情含卖家昵称');
   assert.ok(detail.images.length >= 1);
   assert.deepStrictEqual(detail.categoryPath, ['教材书籍', '专业课教材']);
+  assert.strictEqual(detail.freight, 0, '详情含运费（0=包邮）');
+  assert.ok(detail.viewCount >= 1, '详情含浏览热度');
+  assert.strictEqual(detail.urgent, 0, '详情含急售标记');
   await assert.rejects(() => api.get('/goods/9999'), (err) => err.code === 404, '不存在商品 404');
 
   // —— 未登录 401：清 Token + 跳登录 ——
@@ -86,6 +95,7 @@ module.exports = async function run(shim) {
   const cart = await api.get('/cart');
   assert.strictEqual(cart.list.length, 1);
   assert.strictEqual(cart.list[0].stock, 3);
+  assert.strictEqual(cart.list[0].freight, 0, '购物车快照含运费');
   const upd = await api.put('/cart/items/1', { num: 3 });
   assert.strictEqual(upd.num, 3);
   assert.strictEqual(upd.subtotal, 45);
@@ -109,6 +119,13 @@ module.exports = async function run(shim) {
   assert.ok(order.orderNo, '下单应返回订单号');
   assert.strictEqual(order.status, '待支付');
   assert.strictEqual(order.dealPrice, 30);
+  assert.strictEqual(order.freightAmount, 0, '下单响应含 freightAmount（包邮）');
+  assert.strictEqual(order.totalAmount, 30, '下单响应含 totalAmount=商品+运费');
+  // 运费订单：商品 2 运费 5 → freightAmount=5、totalAmount=39+5
+  const orderFreight = await api.post('/orders', { goodsId: 2, num: 1, requestId: api.genRequestId() });
+  assert.strictEqual(orderFreight.freightAmount, 5, '运费随单返回');
+  assert.strictEqual(orderFreight.totalAmount, 44, 'totalAmount=39+5');
+  await api.post('/orders/' + orderFreight.orderNo + '/cancel', {});
 
   // —— 重复下单 409 + existOrderNo → 取消原订单后重新下单 ——
   const dupErr = await api.post('/orders', { goodsId: 1, num: 1, requestId: api.genRequestId() }).then(
@@ -224,6 +241,17 @@ module.exports = async function run(shim) {
   assert.strictEqual(chat2.skillName, 'SK-002');
   const chat3 = await api.post('/agent/chat', { prompt: '查一下我的订单状态', requestId: api.genRequestId() });
   assert.strictEqual(chat3.skillName, 'SK-003');
+  // v2.1：SK-004 比对 / SK-005 买前建议 / SK-006 下单草稿 / SK-007 识图
+  const chat4 = await api.post('/agent/chat', { prompt: '比对两个商品哪个好', requestId: api.genRequestId() });
+  assert.strictEqual(chat4.skillName, 'SK-004', '比对指令命中 SK-004');
+  const chat5 = await api.post('/agent/chat', { prompt: '这个值不值得买', requestId: api.genRequestId() });
+  assert.strictEqual(chat5.skillName, 'SK-005', '买前建议命中 SK-005');
+  const chat6 = await api.post('/agent/chat', { prompt: '帮我下单', requestId: api.genRequestId() });
+  assert.strictEqual(chat6.skillName, 'SK-006', '下单指令命中 SK-006');
+  assert.ok(chat6.draft && chat6.draft.goodsId && chat6.draft.num >= 1 &&
+    typeof chat6.draft.totalAmount === 'number', 'SK-006 返回下单草稿 data.draft');
+  const vision = await api.upload('/agent/describe-image', '/tmp/vision.png');
+  assert.ok(vision.title && vision.description && vision.categoryHint && Array.isArray(vision.tags), '识图返回标题/描述/分类提示/标签');
   await assert.rejects(
     () => api.post('/agent/chat', { prompt: '把平台上所有商品都删了', requestId: api.genRequestId() }),
     (err) => err.code === 4003,

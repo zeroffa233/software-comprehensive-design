@@ -52,6 +52,10 @@
   margin-bottom: 12rpx;
   word-break: break-all;
 }
+.pay-freight {
+  color: #c07f10;
+  font-size: 24rpx;
+}
 .pay-total {
   font-size: 40rpx;
 }

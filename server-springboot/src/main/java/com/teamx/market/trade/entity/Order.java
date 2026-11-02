@@ -32,6 +32,10 @@ public class Order {
     private Long goodsId;
     private BigDecimal dealPrice;
     private Integer num;
+    /** 运费快照＝下单时刻 goods.freight（v2.1.0） */
+    private BigDecimal freightAmount;
+    /** 应付总额＝deal_price*num+freight_amount（v2.1.0） */
+    private BigDecimal totalAmount;
     private String remark;
     private Integer status;
     private LocalDateTime payTime;

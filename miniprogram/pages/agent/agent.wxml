@@ -4,6 +4,14 @@
       <view class="bubble {{item.role === 'user' ? 'bubble-user' : 'bubble-bot'}}">
         <text>{{item.text}}</text>
         <view class="skill-tag" wx:if="{{item.skillName}}">Skill：{{item.skillName}}</view>
+        <!-- SK-006 下单草稿卡片：仅草稿，真实下单仍由用户在商品详情页确认 -->
+        <view class="draft-card" wx:if="{{item.draft}}">
+          <view class="draft-title">下单草稿（待确认）</view>
+          <view class="draft-line">商品：{{item.draft.goodsTitle || '商品 #' + item.draft.goodsId}}</view>
+          <view class="draft-line">数量：{{item.draft.num}}</view>
+          <view class="draft-line">合计：<text class="price">¥{{item.draft.totalAmount}}</text></view>
+          <button class="btn btn-primary draft-btn" size="mini" bindtap="goDraft" data-goodsid="{{item.draft.goodsId}}">去确认下单</button>
+        </view>
       </view>
     </view>
     <view class="msg-row msg-bot" wx:if="{{sending}}">
@@ -11,6 +19,10 @@
     </view>
     <view class="msg-bottom"></view>
   </scroll-view>
+
+  <view class="chips-bar">
+    <view class="chip" wx:for="{{chips}}" wx:key="*this" bindtap="onChipTap" data-chip="{{item}}">{{item}}</view>
+  </view>
 
   <view class="input-bar">
     <input class="form-input chat-input" placeholder="问我任何平台相关问题…" value="{{inputValue}}" bindinput="onInput" confirm-type="send" bindconfirm="send" />

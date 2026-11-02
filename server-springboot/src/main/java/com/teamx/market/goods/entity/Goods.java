@@ -34,6 +34,14 @@ public class Goods {
     private BigDecimal price;
     private Integer negotiable;
     private Integer stock;
+    /** 急售标记 0/1（v2.1.0） */
+    private Integer urgent;
+    /** 浏览量：详情每次访问 +1（v2.1.0） */
+    private Integer viewCount;
+    /** 加购次数：加入 +1、移除 -1，下限 0（v2.1.0） */
+    private Integer cartCount;
+    /** 运费 0-50，0=包邮（v2.1.0） */
+    private BigDecimal freight;
     private Integer status;
     private String offShelfReason;
     private LocalDateTime createTime;

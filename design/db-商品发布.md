@@ -93,3 +93,18 @@ erDiagram
 | 条目7 管理员下架违规 | goods.status=已下架 + off_shelf_reason 必填；留痕写 admin_op_log（张雨薇表） |
 | 条目8 审核通过/驳回 | goods.status 待审核→在售 / →草稿 |
 | 条目9 我的商品列表 | goods.idx_seller + status 筛选，展示 off_shelf_reason |
+
+## v2.1.0 增补（AI 与交易增强）
+
+### goods 表新增列
+
+| 字段名 | 类型 | 约束 | 说明 |
+|---|---|---|---|
+| urgent | TINYINT(1) | NOT NULL DEFAULT 0 | 急售标记：0 否 / 1 是（sort=hot 首要排序依据） |
+| view_count | INT | NOT NULL DEFAULT 0 | 浏览量：详情每次访问 +1（应用层 UPDATE，在详情缓存读写之外） |
+| cart_count | INT | NOT NULL DEFAULT 0 | 加购次数：加购 +1、移除 -1，下限 0（GREATEST 兜底） |
+| freight | DECIMAL(6,2) | NOT NULL DEFAULT 0 | 运费 0-50.00；0=包邮；发布/编辑入参校验越界返回 400 |
+
+- 排序：GET /goods `sort=hot` → `ORDER BY urgent DESC, view_count DESC, create_time DESC`。
+- schema.sql 已在 CREATE TABLE 中加列；对已存在的旧库由启动组件 SchemaMigrator 查 information_schema.COLUMNS 幂等 ALTER 补列（列定义与 CREATE TABLE 一致），保证重复启动无副作用。
+- seed.sql 为全部种子商品填充 urgent/view_count/cart_count/freight 样本值（含 freight=0 包邮与 >0 收费两类）。

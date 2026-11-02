@@ -5,7 +5,8 @@ const auth = require('../../../utils/auth');
 const SORT_OPTIONS = [
   { label: '默认（最新发布）', value: '' },
   { label: '价格从低到高', value: 'price,asc' },
-  { label: '价格从高到低', value: 'price,desc' }
+  { label: '价格从高到低', value: 'price,desc' },
+  { label: '热度（浏览+加购）', value: 'hot' }
 ];
 const PAGE_SIZE = 10;
 

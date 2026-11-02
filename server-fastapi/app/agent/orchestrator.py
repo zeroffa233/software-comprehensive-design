@@ -75,6 +75,10 @@ def handle_chat(uid: int, prompt: str, request_id: str) -> ChatOutcome:
             li = state.get("last_items")
             prev = (li or {}).get(skill_id) if isinstance(li, dict) else None
             params["prev_items"] = prev or []
+        # 指代上下文：SK-004/005/006 支持"比对第一个/它值不值得买"沿用上一轮 SK-001 结果
+        if skill_id in ("SK-004", "SK-005", "SK-006") and "context_items" not in params:
+            li = state.get("last_items")
+            params["context_items"] = (li or {}).get("SK-001") or [] if isinstance(li, dict) else []
         params["user_id"] = uid
         mcp = McpRequest(skill_id=skill_id, params=params)
         skill = registry.get(skill_id)
@@ -96,15 +100,18 @@ def handle_chat(uid: int, prompt: str, request_id: str) -> ChatOutcome:
             save(uid, state)
             return finish(5000, reply, {"reply": reply}, skill_id, "ERROR")
 
-        # 3) 组织回复：LLM 基于真实业务数据组织；失败 → Skill 模板 + 规则模式声明
-        reply = None
-        if use_llm:
+        # 3) 组织回复：Skill 自带 LLM 回复（专用提示词）→ 通用 LLM 组织 → Skill 模板 + 规则模式声明
+        reply = result.get("reply")
+        if reply is None and use_llm:
             reply = llm.compose(prompt, json.dumps(result["payload"], ensure_ascii=False), history)
         if reply is None:
             reply = result["template"] + rules.RULE_MODE_SUFFIX
+        data = {"reply": reply, "skillName": skill_id}
+        if result.get("extra"):
+            data.update(result["extra"])
         append_round(state, prompt, reply, skill_id=skill_id, last_items=result.get("last_items"))
         save(uid, state)
-        return finish(0, "success", {"reply": reply, "skillName": skill_id}, skill_id, "OK")
+        return finish(0, "success", data, skill_id, "OK")
 
     # 4) HELP / FALLBACK / 4001 提示类
     if d_type == "HELP":

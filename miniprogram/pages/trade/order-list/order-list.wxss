@@ -43,7 +43,18 @@
   margin-bottom: 8rpx;
 }
 .order-price-line {
+  display: flex;
+  align-items: baseline;
   margin-bottom: 8rpx;
+}
+.order-freight {
+  margin-left: 8rpx;
+}
+.order-total-line {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #26292e;
+  margin: 4rpx 0;
 }
 .order-actions {
   display: flex;
@@ -78,6 +89,11 @@
 .detail-section {
   font-weight: 600;
   margin: 20rpx 0 12rpx;
+}
+.order-detail-total {
+  font-size: 28rpx;
+  font-weight: 600;
+  margin: 8rpx 0;
 }
 .timeline-item {
   display: flex;

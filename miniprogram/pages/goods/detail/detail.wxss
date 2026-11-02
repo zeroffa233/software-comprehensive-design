@@ -24,6 +24,9 @@
 .detail-price {
   font-size: 44rpx;
 }
+.detail-price-row .tag-red {
+  margin-left: 16rpx;
+}
 .detail-status {
   margin-left: auto;
 }
@@ -45,6 +48,14 @@
   line-height: 1.7;
   color: #3d4249;
   white-space: pre-wrap;
+}
+.ai-advice-btn {
+  height: 72rpx;
+  line-height: 68rpx;
+  font-size: 28rpx;
+}
+.ai-advice-hint {
+  text-align: center;
 }
 .detail-bar {
   position: fixed;

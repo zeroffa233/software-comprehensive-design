@@ -5,10 +5,11 @@
 """
 import json
 import logging
+import time
 import uuid
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Header, Response
+from fastapi import FastAPI, Header, Request, Response
 from pydantic import BaseModel, Field
 
 from app.agent import llm
@@ -17,6 +18,9 @@ from app.core import db
 from app.core.config import settings
 from app.core.security import AuthError, decode_user_token
 from app.core.springboot import client as sb_client
+from app.mcp.message import McpError
+from app.skills.sk007_describe import describe as sk007_describe_run
+from app.skills.sk007_describe import load_image_url, validate_image_bytes
 
 logging.basicConfig(level=logging.INFO,
                     format="%(asctime)s %(levelname)s %(name)s - %(message)s")
@@ -100,3 +104,60 @@ def _json_err(err: dict):
     status = err["code"] if err["code"] in (400, 401) else 200
     return Response(content=json.dumps(err, ensure_ascii=False),
                     status_code=status, media_type="application/json")
+
+
+class _ImageUrlBody(BaseModel):
+    imageUrl: str = Field(..., description="后端 /images/** 静态路径，如 /images/seed/g1.png")
+
+
+@app.post("/api/v1/agent/describe-image")
+async def agent_describe_image(request: Request,
+                               authorization: str | None = Header(default=None),
+                               x_user_id: str | None = Header(default=None)):
+    """SK-007 识图生成描述：multipart image（jpg/png/webp ≤5MB）或 JSON {imageUrl}。
+    视觉 LLM 生成 {title, description, categoryHint, tags[]} 供发布页一键回填；
+    只读留痕 agent_chat_log（SK-007），不写业务库。"""
+    started = time.monotonic()
+    uid, err = _resolve_uid(authorization, x_user_id, None)
+    if err:
+        return _json_err(err)
+
+    content_type = (request.headers.get("content-type") or "").lower()
+    prompt_label = "识图"
+    try:
+        if content_type.startswith("multipart/form-data"):
+            form = await request.form()
+            upload = form.get("image")
+            if upload is None or isinstance(upload, str):
+                return _json_err({"code": 400, "msg": "缺少 multipart 字段 image（jpg/png/webp ≤5MB）", "data": None})
+            data = await upload.read()
+            if len(data) > 5 * 1024 * 1024 + 1:
+                return _json_err({"code": 400, "msg": "图片超过 5MB 上限", "data": None})
+            prompt_label = f"识图:{(upload.filename or 'image')[:60]}"
+            image_bytes, mime = data, validate_image_bytes(data)
+        elif "application/json" in content_type or not content_type:
+            try:
+                body = _ImageUrlBody(**(await request.json()))
+            except Exception:
+                return _json_err({"code": 400, "msg": "请求体须为 multipart image 或 JSON {imageUrl}", "data": None})
+            prompt_label = f"识图:{body.imageUrl[:60]}"
+            image_bytes = load_image_url(body.imageUrl)
+            mime = validate_image_bytes(image_bytes)
+        else:
+            return _json_err({"code": 400, "msg": f"不支持的 Content-Type：{content_type}", "data": None})
+
+        result = sk007_describe_run(image_bytes, mime)
+        elapsed_ms = int((time.monotonic() - started) * 1000)
+        db.log_chat(user_id=uid, prompt=prompt_label,
+                    response=f"{result['title']}｜{result['description']}"[:2000],
+                    skill_name="SK-007", status="OK", request_id=None, elapsed_ms=elapsed_ms)
+        logger.info("describe-image done uid=%s elapsed=%sms", uid, elapsed_ms)
+        return {"code": 0, "msg": "success", "data": result}
+    except McpError as e:
+        elapsed_ms = int((time.monotonic() - started) * 1000)
+        db.log_chat(user_id=uid, prompt=prompt_label, response=e.msg,
+                    skill_name="SK-007", status="ERROR", request_id=None, elapsed_ms=elapsed_ms)
+        return _json_err({"code": e.code, "msg": e.msg, "data": None})
+    except Exception:
+        logger.exception("describe-image 异常")
+        return _json_err({"code": 5000, "msg": "系统繁忙，请稍后再试", "data": None})

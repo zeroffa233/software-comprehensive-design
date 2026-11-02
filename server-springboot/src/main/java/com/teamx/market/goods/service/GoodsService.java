@@ -118,10 +118,13 @@ public class GoodsService {
         }
         String[] parts = sort.split(",");
         String field = parts[0].trim();
+        // 排序白名单：create_time / price / hot（v2.1.0：急售优先→浏览量→时间）
+        if ("hot".equals(field)) {
+            return "urgent DESC, view_count DESC, create_time DESC";
+        }
         String dir = parts.length > 1 && "asc".equalsIgnoreCase(parts[1].trim()) ? "ASC" : "DESC";
-        // 排序白名单：create_time / price
         if (!"create_time".equals(field) && !"price".equals(field)) {
-            throw BizException.badRequest("sort 仅支持 create_time/price");
+            throw BizException.badRequest("sort 仅支持 create_time/price/hot");
         }
         return field + " " + dir;
     }
@@ -155,6 +158,10 @@ public class GoodsService {
             m.put("mainImage", mainImages.getOrDefault(g.getId(), ""));
             m.put("categoryName", categoryNames.getOrDefault(g.getCategoryId(), ""));
             m.put("stock", g.getStock());
+            m.put("urgent", g.getUrgent() != null && g.getUrgent() == 1);
+            m.put("viewCount", g.getViewCount() == null ? 0 : g.getViewCount());
+            m.put("cartCount", g.getCartCount() == null ? 0 : g.getCartCount());
+            m.put("freight", g.getFreight() == null ? BigDecimal.ZERO : g.getFreight());
             m.put("createTime", fmt(g.getCreateTime()));
             return m;
         }).collect(Collectors.toList());
@@ -189,21 +196,28 @@ public class GoodsService {
      */
     public Map<String, Object> detail(long id) {
         Object cached = redis.opsForValue().get(KEY_DETAIL_PREFIX + id);
+        Map<String, Object> data;
         if (cached != null) {
-            return (Map<String, Object>) cached;
+            data = (Map<String, Object>) cached;
+        } else {
+            Goods g = goodsMapper.selectById(id);
+            if (g == null) {
+                throw BizException.notFound("商品不存在");
+            }
+            com.teamx.market.auth.LoginUser login = com.teamx.market.auth.UserContext.get();
+            boolean privileged = login != null && (login.getUid() == g.getSellerId()
+                    || com.teamx.market.auth.JwtUtil.ROLE_ADMIN.equals(login.getRole()));
+            if (g.getStatus() != Goods.STATUS_ON_SALE && !privileged) {
+                throw BizException.notFound("商品不存在");
+            }
+            data = detailOf(g);
+            redis.opsForValue().set(KEY_DETAIL_PREFIX + id, data, Duration.ofSeconds(60));
         }
-        Goods g = goodsMapper.selectById(id);
-        if (g == null) {
-            throw BizException.notFound("商品不存在");
-        }
-        com.teamx.market.auth.LoginUser login = com.teamx.market.auth.UserContext.get();
-        boolean privileged = login != null && (login.getUid() == g.getSellerId()
-                || com.teamx.market.auth.JwtUtil.ROLE_ADMIN.equals(login.getRole()));
-        if (g.getStatus() != Goods.STATUS_ON_SALE && !privileged) {
-            throw BizException.notFound("商品不存在");
-        }
-        Map<String, Object> data = detailOf(g);
-        redis.opsForValue().set(KEY_DETAIL_PREFIX + id, data, Duration.ofSeconds(60));
+        // 浏览量：每次访问 +1（独立 UPDATE，在缓存读写之外）
+        goodsMapper.update(null, new com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper<Goods>()
+                .eq(Goods::getId, id)
+                .setSql("view_count = view_count + 1"));
+        data.put("viewCount", goodsMapper.selectById(id).getViewCount());
         return data;
     }
 
@@ -221,6 +235,9 @@ public class GoodsService {
         data.put("description", g.getDescription());
         data.put("price", g.getPrice());
         data.put("negotiable", g.getNegotiable() != null && g.getNegotiable() == 1);
+        data.put("urgent", g.getUrgent() != null && g.getUrgent() == 1);
+        data.put("freight", g.getFreight() == null ? BigDecimal.ZERO : g.getFreight());
+        data.put("cartCount", g.getCartCount() == null ? 0 : g.getCartCount());
         data.put("stock", g.getStock());
         data.put("status", g.statusName());
         data.put("images", images.stream().map(i -> {
@@ -276,6 +293,8 @@ public class GoodsService {
         g.setDescription(req.getDescription());
         g.setPrice(req.getPrice());
         g.setNegotiable(Boolean.TRUE.equals(req.getNegotiable()) ? 1 : 0);
+        g.setUrgent(Boolean.TRUE.equals(req.getUrgent()) ? 1 : 0);
+        g.setFreight(req.getFreight() == null ? BigDecimal.ZERO : req.getFreight());
         g.setStock(req.getStock());
         g.setStatus(Goods.STATUS_PENDING);
         goodsMapper.insert(g);
@@ -411,6 +430,12 @@ public class GoodsService {
         }
         if (req.getNegotiable() != null) {
             g.setNegotiable(Boolean.TRUE.equals(req.getNegotiable()) ? 1 : 0);
+        }
+        if (req.getUrgent() != null) {
+            g.setUrgent(Boolean.TRUE.equals(req.getUrgent()) ? 1 : 0);
+        }
+        if (req.getFreight() != null) {
+            g.setFreight(req.getFreight());
         }
         if (req.getStock() != null) {
             g.setStock(req.getStock());
@@ -615,6 +640,11 @@ public class GoodsService {
         if (detailKeys != null && !detailKeys.isEmpty()) {
             redis.delete(detailKeys);
         }
+    }
+
+    /** 逐出单个商品详情缓存（购物车加购/移除后调用，保证 cartCount 响应即时） */
+    public void evictDetailCache(long goodsId) {
+        redis.delete(KEY_DETAIL_PREFIX + goodsId);
     }
 
     private static String UserService_extOf(String name) {

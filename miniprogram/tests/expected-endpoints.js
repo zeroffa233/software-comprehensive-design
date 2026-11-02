@@ -14,15 +14,16 @@ module.exports = [
   { method: 'PUT', path: '/users/me/password', body: ['oldPassword', 'newPassword'], query: [], doc: 'api-用户及权限.md', page: 'profile' },
   { method: 'POST', path: '/users/me/avatar', body: ['file(multipart)'], query: [], doc: 'api-用户及权限.md', page: 'profile' },
   { method: 'POST', path: '/agent/chat', body: ['prompt', 'requestId'], query: [], doc: 'api-用户及权限.md', page: 'agent' },
+  { method: 'POST', path: '/agent/describe-image', body: ['file(multipart)'], query: [], doc: 'api-用户及权限.md', page: 'publish' },
 
   // —— api-商品发布.md ——
   { method: 'GET', path: '/categories', body: [], query: ['parentId'], doc: 'api-商品发布.md', page: 'list/publish' },
   { method: 'GET', path: '/goods', body: [], query: ['categoryId', 'keyword', 'sort', 'page', 'pageSize'], doc: 'api-商品发布.md', page: 'list' },
   { method: 'GET', path: '/goods/{id}', body: [], query: [], doc: 'api-商品发布.md', page: 'detail/publish(edit)' },
-  { method: 'POST', path: '/goods', body: ['title', 'categoryId', 'price', 'negotiable', 'stock', 'description', 'imageIds', 'requestId'], query: [], doc: 'api-商品发布.md', page: 'publish' },
+  { method: 'POST', path: '/goods', body: ['title', 'categoryId', 'price', 'negotiable', 'stock', 'freight', 'urgent', 'description', 'imageIds', 'requestId'], query: [], doc: 'api-商品发布.md', page: 'publish' },
   { method: 'POST', path: '/goods/images', body: ['file(multipart)'], query: [], doc: 'api-商品发布.md', page: 'publish' },
   { method: 'DELETE', path: '/goods/images/{imageId}', body: [], query: [], doc: 'api-商品发布.md', page: 'publish' },
-  { method: 'PUT', path: '/goods/{id}', body: ['title', 'categoryId', 'price', 'negotiable', 'stock', 'description'], query: [], doc: 'api-商品发布.md', page: 'publish(edit)' },
+  { method: 'PUT', path: '/goods/{id}', body: ['title', 'categoryId', 'price', 'negotiable', 'stock', 'freight', 'urgent', 'description'], query: [], doc: 'api-商品发布.md', page: 'publish(edit)' },
   { method: 'POST', path: '/goods/{id}/off-shelf', body: [], query: [], doc: 'api-商品发布.md', page: 'detail/mine' },
   { method: 'POST', path: '/goods/{id}/re-list', body: [], query: [], doc: 'api-商品发布.md', page: 'mine' },
   { method: 'GET', path: '/goods/mine', body: [], query: ['status', 'page', 'pageSize'], doc: 'api-商品发布.md', page: 'mine' },

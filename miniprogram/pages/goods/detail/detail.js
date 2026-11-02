@@ -7,6 +7,7 @@ Page({
     id: null,
     goods: null,
     categoryPathText: '',
+    freightText: '',
     isOwner: false,
     num: 1,
     showNumPicker: false,
@@ -28,16 +29,26 @@ Page({
       const pathText = Array.isArray(path) ? path.join(' / ') : (path || '');
       const me = auth.getUserInfo();
       const isOwner = !!(goods.seller && me && goods.seller.uid === me.userId);
+      const freight = Number(goods.freight) || 0;
       this.setData({
         goods: goods,
         categoryPathText: pathText,
         isOwner: isOwner,
+        freightText: freight > 0 ? '运费 ¥' + freight : '包邮',
         num: 1,
         loading: false
       });
     }).catch((err) => {
       this.setData({ loading: false, notFound: err && err.code === 404 });
     });
+  },
+
+  // —— AI 比对/买前建议（SK-004/005）：跳助手页并携带预填 prompt ——
+  aiAdvice() {
+    const goods = this.data.goods;
+    if (!goods) { return; }
+    wx.setStorageSync('agentPrefill', '帮我看看 ' + goods.title + ' 值不值得买');
+    wx.switchTab({ url: '/pages/agent/agent' });
   },
 
   onImageTap(e) {
@@ -106,7 +117,7 @@ Page({
     });
   },
 
-  // 立即购买：携带单商品直接进入确认订单页
+  // 立即购买：携带单商品直接进入确认订单页（运费随单结算）
   buyNow() {
     const goods = this.data.goods;
     wx.setStorageSync('directBuy', {
@@ -114,7 +125,8 @@ Page({
       title: goods.title,
       unitPrice: goods.price,
       num: this.data.num,
-      stock: goods.stock
+      stock: goods.stock,
+      freight: Number(goods.freight) || 0
     });
     this.setData({ showNumPicker: false });
     wx.navigateTo({ url: '/pages/trade/order-confirm/order-confirm?source=direct' });

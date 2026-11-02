@@ -78,9 +78,14 @@ Page({
     if (status) { params.status = status; }
     this.setData({ loading: true });
     api.get('/orders', { data: params, silent: true }).then((data) => {
-      const list = ((data && data.list) || []).map((o) => Object.assign({}, o, {
-        keyTimesText: keyTimesToText(o.keyTimes)
-      }));
+      const list = ((data && data.list) || []).map((o) => {
+        const freightAmount = typeof o.freightAmount === 'number' ? o.freightAmount : null;
+        return Object.assign({}, o, {
+          keyTimesText: keyTimesToText(o.keyTimes),
+          freightText: freightAmount === null ? '' : (freightAmount > 0 ? '运费 ¥' + freightAmount : '包邮'),
+          totalAmountText: typeof o.totalAmount === 'number' ? '合计 ¥' + o.totalAmount.toFixed(2) : ''
+        });
+      });
       const total = data && data.total ? data.total : 0;
       this.setData({
         list: reset ? list : this.data.list.concat(list),
@@ -107,12 +112,16 @@ Page({
     wx.stopPullDownRefresh();
   },
 
-  // GET /orders/{orderNo}：订单详情（商品快照 + 状态流转时间线）
+  // GET /orders/{orderNo}：订单详情（商品快照 + 状态流转时间线 + 运费/合计）
   openDetail(e) {
     const orderNo = e.currentTarget.dataset.orderno;
     api.get('/orders/' + orderNo, { silent: true }).then((o) => {
+      const freightAmount = typeof (o && o.freightAmount) === 'number' ? o.freightAmount : null;
       this.setData({
-        detailOrder: o,
+        detailOrder: Object.assign({}, o, {
+          freightText: freightAmount === null ? '' : (freightAmount > 0 ? '＋ 运费 ¥' + freightAmount : '（包邮）'),
+          totalAmountText: typeof (o && o.totalAmount) === 'number' ? '合计应付 ¥' + o.totalAmount.toFixed(2) : ''
+        }),
         detailTimeline: (o && o.timeline) || []
       });
     }).catch(() => {});

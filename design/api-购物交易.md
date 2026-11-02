@@ -51,3 +51,27 @@ Agent 链路（SK-003 订单状态查询）复用 #10 的属主校验逻辑：Sk
 | 8. 查看订单列表与详情（状态机两条合法路径、非法跳转后端拒绝） | #9 #10；管理员"查看全部订单"（report/04）→ #11 |
 
 > 映射结论：8 条功能需求全部有端点承接，无遗漏；端点 #11 同时承接 report/04 管理员权限点 `admin:order:view-all`。
+
+## v2.1.0 增补（AI 与交易增强）
+
+### 订单运费快照与应付总额（#5）
+
+- POST /orders 入参不变（仍为 `{goodsId, num, remark?, requestId}`）。
+- 下单时取商品当前 `goods.freight` 做快照：`freight_amount`；`total_amount = deal_price × num + freight_amount`。
+- 支付/取消/确认收货金额口径不变；运费随订单快照，不随后续改价/改运费变化。
+
+### 响应新增字段（#5 下单 / #9 列表 / #10 详情 / #11 管理端列表）
+
+| 字段 | 类型 | 说明 |
+|---|---|---|
+| `freightAmount` | BigDecimal | 运费快照（下单时刻 goods.freight，0=包邮） |
+| `totalAmount` | BigDecimal | 应付总额 = dealPrice × num + freightAmount |
+
+### 购物车计数（#2 / #4）
+
+- 加购成功：`goods.cart_count + 1`；移除条目：`goods.cart_count - 1`（下限 0，GREATEST 兜底）。
+- 购物车列表（#1）条目快照新增 `freight`（BigDecimal）与 `urgent`（Boolean），供结算页展示。
+
+### 数据库侧
+
+orders 新增 `freight_amount`/`total_amount`，goods 新增 `urgent`/`view_count`/`cart_count`/`freight`，见 db-购物交易.md、db-商品发布.md「v2.1.0 增补」；启动时 SchemaMigrator 幂等补列。

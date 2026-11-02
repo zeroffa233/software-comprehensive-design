@@ -4,36 +4,42 @@ const auth = require('../../../utils/auth');
 
 Page({
   data: {
-    items: [], // {goodsId,title,mainImage,unitPrice,stock,num,checked}
+    items: [], // {goodsId,title,mainImage,unitPrice,stock,freight,freightText,num,checked}
     allChecked: true,
     selectedCount: 0,
     totalPrice: '0.00',
+    freightTotal: '0.00',
     loading: true,
     loaded: false
   },
 
   onShow() {
     if (!auth.isLoggedIn()) {
-      this.setData({ items: [], loading: false, loaded: true, totalPrice: '0.00', selectedCount: 0, allChecked: false });
+      this.setData({ items: [], loading: false, loaded: true, totalPrice: '0.00', freightTotal: '0.00', selectedCount: 0, allChecked: false });
       return;
     }
     this.loadCart();
   },
 
-  // GET /cart：购物车全部条目（含商品快照：标题/主图/单价/剩余库存）
+  // GET /cart：购物车全部条目（含商品快照：标题/主图/单价/剩余库存/运费）
   loadCart() {
     this.setData({ loading: true });
     api.get('/cart', { silent: true }).then((data) => {
       const list = (data && data.list) || [];
-      const items = list.map((it) => ({
-        goodsId: it.goodsId,
-        title: it.title,
-        mainImage: it.mainImage,
-        unitPrice: it.unitPrice,
-        stock: it.stock,
-        num: it.num,
-        checked: true
-      }));
+      const items = list.map((it) => {
+        const freight = Number(it.freight) || 0;
+        return {
+          goodsId: it.goodsId,
+          title: it.title,
+          mainImage: it.mainImage,
+          unitPrice: it.unitPrice,
+          stock: it.stock,
+          freight: freight,
+          freightText: freight > 0 ? '运费 ¥' + freight : '包邮',
+          num: it.num,
+          checked: true
+        };
+      });
       this.setData({ items: items, loading: false, loaded: true });
       this.recalc();
     }).catch(() => {
@@ -45,9 +51,11 @@ Page({
     const items = this.data.items;
     const selected = items.filter((it) => it.checked);
     const total = selected.reduce((sum, it) => sum + it.unitPrice * it.num, 0);
+    const freightTotal = selected.reduce((sum, it) => sum + (Number(it.freight) || 0), 0);
     this.setData({
       selectedCount: selected.reduce((sum, it) => sum + it.num, 0),
       totalPrice: total.toFixed(2),
+      freightTotal: freightTotal.toFixed(2),
       allChecked: items.length > 0 && selected.length === items.length
     });
   },
@@ -125,7 +133,8 @@ Page({
       title: it.title,
       unitPrice: it.unitPrice,
       num: it.num,
-      stock: it.stock
+      stock: it.stock,
+      freight: Number(it.freight) || 0
     })));
     wx.navigateTo({ url: '/pages/trade/order-confirm/order-confirm?source=cart' });
   },

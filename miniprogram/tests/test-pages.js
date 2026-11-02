@@ -131,6 +131,14 @@ module.exports = async function run(shim) {
   page.onSortChange({ detail: { value: 1 } });
   await shim.settle(() => page.data.goodsList.length >= 3);
   assertContract(state.requests.slice(base), 'list(sort)');
+  // v2.1：热度排序（sort=hot）+ 急售角标/浏览量字段
+  page.setData({ sortIndex: 3 });
+  base = before();
+  page.onSortChange({ detail: { value: 3 } });
+  await shim.settle(() => page.data.goodsList.length >= 3 && page.data.goodsList[0].id === 3, 5000);
+  assertContract(state.requests.slice(base), 'list(sort hot)');
+  assert.strictEqual(page.data.goodsList[0].urgent, 1, '急售角标字段');
+  assert.ok(page.data.goodsList[0].viewCount > 0, '浏览量字段');
 
   // ========== 商品详情（买家加购） ==========
   cfg = load('detail');
@@ -141,6 +149,8 @@ module.exports = async function run(shim) {
   assertContract(state.requests.slice(base), 'detail(load)');
   assert.strictEqual(page.data.goods.stock, 1);
   assert.strictEqual(page.data.isOwner, false, '买家视角非属主');
+  assert.strictEqual(page.data.freightText, '运费 ¥5', '详情展示运费（¥5）');
+  assert.ok(page.data.goods.viewCount > 0, '详情展示浏览热度');
   base = before();
   page.openNumPicker();
   page.onNumPlus();
@@ -157,6 +167,8 @@ module.exports = async function run(shim) {
   page.onShow();
   await shim.settle(() => page.data.items.length === 1 && page.data.totalPrice !== '0.00');
   assertContract(state.requests.slice(-1), 'cart(load)');
+  assert.strictEqual(page.data.items[0].freightText, '运费 ¥5', '购物车条目展示运费（商品 2 运费 5）');
+  assert.strictEqual(page.data.freightTotal, '5.00', '购物车运费合计');
   // 步进封顶：库存 1 时 onPlus 不发请求
   base = before();
   page.onPlus({ currentTarget: { dataset: { index: 0 } } });
@@ -358,6 +370,21 @@ module.exports = async function run(shim) {
   await shim.settle(() => page.data.images.length >= 1 && !page.data.uploading, 5000);
   assert.ok(page.data.images.length >= 1, '九宫格选图上传成功');
   assert.ok(state.uploads.slice(base).some((u) => u.path === '/goods/images'), '上传调用 POST /goods/images');
+  // v2.1：AI 识图填充（SK-007）→ 上传 /agent/describe-image → 弹建议层 → 确认填入 + 分类级联匹配
+  const uploadsBeforeVision = state.uploads.length;
+  page.describeImage();
+  await shim.settle(() => state.uploads.length >= uploadsBeforeVision + 1 && page.data.aiVisionModal === true, 5000);
+  assert.ok(state.uploads.slice(uploadsBeforeVision).some((u) => u.path === '/agent/describe-image'), '识图调用 POST /agent/describe-image');
+  assert.ok(page.data.aiVision.title && page.data.aiVision.description, '识图返回标题/描述建议');
+  assert.strictEqual(page.data.aiVision.matched.topIndex, 3, 'categoryHint「小家电」匹配一级分类');
+  assert.strictEqual(page.data.aiVision.matched.secondIndex, 1, 'categoryHint「小家电」匹配二级分类');
+  const aiTitle = page.data.aiVision.title;
+  const aiDesc = page.data.aiVision.description;
+  page.applyAiVision();
+  assert.strictEqual(page.data.title, aiTitle, '确认后标题已填入');
+  assert.strictEqual(page.data.description, aiDesc, '确认后描述已填入');
+  assert.strictEqual(page.data.topIndex, 3, '分类级联已自动匹配');
+  assert.strictEqual(page.data.secondIndex, 1, '二级分类已自动匹配');
   // 再传一张并删除 → 覆盖 DELETE /goods/images/{imageId}
   page.chooseImage();
   await shim.settle(() => page.data.images.length >= 2 && !page.data.uploading, 5000);
@@ -369,6 +396,7 @@ module.exports = async function run(shim) {
   page.setData({
     title: '九成新台灯几乎全新',
     price: '29.9', negotiable: true, stock: '1',
+    freight: '5', urgent: true,
     description: '宿舍台灯九成新，无维修历史，附原装电源线，校内可面交自提。'
   });
   page.onTopCategoryChange({ detail: { value: 3 } }); // 生活用品
@@ -381,6 +409,9 @@ module.exports = async function run(shim) {
   await shim.settle(() => state.requests.length >= base + 1, 5000);
   assertContract(state.requests.slice(base), 'publish(create)');
   assert.ok(state.requests.slice(base).some((r) => r.method === 'POST' && /\/goods$/.test(r.path)), '发布调用 POST /goods');
+  const publishBody = state.requests.slice(base).find((r) => r.method === 'POST' && /\/goods$/.test(r.path)).data;
+  assert.strictEqual(publishBody.freight, 5, '发布携带运费 5');
+  assert.strictEqual(publishBody.urgent, 1, '发布携带急售标记');
 
   // 切换卖家账号：编辑 + 我的商品（状态 Tab/下架/重新上架）
   auth.clearToken();
@@ -437,6 +468,29 @@ module.exports = async function run(shim) {
   assertContract(state.requests.slice(base), 'agent(chat)');
   assert.strictEqual(page.data.messages[page.data.messages.length - 1].skillName, 'SK-001', '回复携带 skillName');
   assert.ok(page.data.messages[page.data.messages.length - 1].text.length > 0, 'Agent 回复非空');
+
+  // v2.1：快捷指令 chips + 详情页入口预填（agentPrefill）
+  assert.deepStrictEqual(page.data.chips, ['比对两个商品', '这个值不值得买', '帮我下单'], '快捷指令 chips 就绪');
+  page.onChipTap({ currentTarget: { dataset: { chip: '这个值不值得买' } } });
+  assert.strictEqual(page.data.inputValue, '这个值不值得买', '点 chip 填入输入框');
+  wx.setStorageSync('agentPrefill', '帮我看看 小米台灯 值不值得买');
+  page.onShow();
+  assert.strictEqual(page.data.inputValue, '帮我看看 小米台灯 值不值得买', '详情页 AI 入口预填 prompt');
+  assert.strictEqual(wx.getStorageSync('agentPrefill'), '', '预填后清除存储');
+
+  // v2.1：SK-006 下单草稿卡片 → 去确认下单跳商品详情（真实下单仍走购买流程）
+  base = before();
+  page.setData({ inputValue: '帮我下单' });
+  page.send();
+  await shim.settle(() => page.data.messages.length >= 5 && page.data.sending === false, 5000);
+  assertContract(state.requests.slice(base), 'agent(chat draft)');
+  const draftMsg = page.data.messages[page.data.messages.length - 1];
+  assert.strictEqual(draftMsg.skillName, 'SK-006', '下单草稿命中 SK-006');
+  assert.ok(draftMsg.draft && draftMsg.draft.goodsId && draftMsg.draft.num >= 1 &&
+    typeof draftMsg.draft.totalAmount === 'number', '草稿卡片含商品/数量/合计');
+  page.goDraft({ currentTarget: { dataset: { goodsid: draftMsg.draft.goodsId } } });
+  assert.ok(state.navigations.some((n) => n.type === 'navigateTo' &&
+    n.url === '/pages/goods/detail/detail?id=' + draftMsg.draft.goodsId), '去确认下单跳商品详情页');
 
   // ========== 契约断言汇总 ==========
   if (errors.length > 0) {

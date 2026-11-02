@@ -85,8 +85,10 @@ public class OrderService {
         order.setBuyerId(uid);
         order.setSellerId(g.getSellerId());
         order.setGoodsId(g.getId());
-        // 价格快照＝下单时刻 goods.price
+        // 价格快照＝下单时刻 goods.price；运费快照＝下单时刻 goods.freight（v2.1.0）
         order.setDealPrice(g.getPrice());
+        order.setFreightAmount(g.getFreight() == null ? BigDecimal.ZERO : g.getFreight());
+        order.setTotalAmount(g.getPrice().multiply(BigDecimal.valueOf(req.getNum())).add(order.getFreightAmount()));
         order.setNum(req.getNum());
         order.setRemark(req.getRemark());
         order.setStatus(Order.STATUS_PENDING_PAY);
@@ -100,6 +102,9 @@ public class OrderService {
         Map<String, Object> data = new HashMap<>();
         data.put("orderNo", order.getOrderNo());
         data.put("dealPrice", order.getDealPrice());
+        data.put("num", order.getNum());
+        data.put("freightAmount", order.getFreightAmount());
+        data.put("totalAmount", order.getTotalAmount());
         data.put("status", order.statusName());
         data.put("expireAt", order.getCreateTime().plusMinutes(PAY_TIMEOUT_MINUTES)
                 .format(TS_FMT));
@@ -272,6 +277,8 @@ public class OrderService {
         m.put("goodsTitle", row.get("goodsTitle"));
         m.put("dealPrice", row.get("deal_price"));
         m.put("num", row.get("num"));
+        m.put("freightAmount", row.get("freight_amount"));
+        m.put("totalAmount", row.get("total_amount"));
         int st = ((Number) row.get("status")).intValue();
         m.put("status", Order.STATUS_NAMES[st]);
         Map<String, Object> keyTimes = new LinkedHashMap<>();
@@ -292,6 +299,8 @@ public class OrderService {
         data.put("status", order.statusName());
         data.put("dealPrice", order.getDealPrice());
         data.put("num", order.getNum());
+        data.put("freightAmount", order.getFreightAmount());
+        data.put("totalAmount", order.getTotalAmount());
         data.put("remark", order.getRemark());
         List<Map<String, Object>> timeline = new ArrayList<>();
         addTimeline(timeline, "CREATE", order.getCreateTime());

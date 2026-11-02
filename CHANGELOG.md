@@ -3,6 +3,15 @@
 > **东南大学 计算机科学与技术专业 · 软件开发综合课程设计** ｜ 校园二手物品交易平台）
 > 记录每次提交/合并的要点。时间：2026-10-14（需求分析阶段 v1.0/v1.0.1/v1.0.2、设计准备阶段 v1.1）。
 
+## 2026-11-02 v2.1.0 AI 与交易增强（对照课次启发式建议）
+
+- **运行时 LLM 切换 glm-5.3-flash**（同一 ARK coding plan key，实测该模型支持文本+视觉；doubao-seed-2.0-mini 退役）。glm 为推理模型：token 预算提升至 1200-2000 并加空 content 守卫（reasoning 占满时回退规则模式）。
+- **Agent 新增四个 Skill（全只读/草稿，守报告 §9 红线）**：SK-004 商品比对（结构化数据→LLM 对比表+结论）、SK-005 选购建议（热度/急售/价格 vs 同类均价，附免责）、SK-006 智能下单草稿（data.draft 供 UI 确认，**不写业务库**，实测下单前后订单数不变）、SK-007 识图生成发布描述（视觉模型，SpringBoot :8080 增 describe-image 薄代理维持单入口，multipart 字段 image，agent_chat_log 留痕）。
+- **商品竞争力机制**：goods.urgent 急售标记（发布/编辑可设）、view_count 浏览量（详情自增，缓存外执行）、cart_count 加购热度（加购 +1/移除 -1 下限 0）、GET /goods sort=hot（急售→浏览量→时间）；购物车变更即时逐出详情缓存。
+- **运费**：goods.freight（0=包邮，上限 50 非法 400）；orders.freight_amount/total_amount 快照（=价×量+运费）；列表/详情/订单/管理端全返回。SchemaMigrator 幂等补列（information_schema 检查，多次重启验证）。
+- **小程序**：发布页 AI 识图回填+运费+急售开关、列表热度排序+急售角标+浏览量、详情热度/运费+AI 比对入口、助手页快捷指令+SK-006 草稿卡片；契约测试 31/31 零偏差，live 冒烟 12 项全绿（wx-shim 升级为读真实文件字节上传）。
+- 契约文档（api/db-商品发布、api/db-购物交易）追加"v2.1.0 增补"节。
+
 ## 2026-10-29 v2.0.0 四端工程实现（对照验收标准）
 
 - **server-springboot**（:8080）：39 契约端点逐字实现（auth 14/goods 13/trade 11 + 对齐追加 GET /admin/goods、svc-token），Java 17 + MyBatis-Plus + JWT(uid/role)+Redis 会话 + @RequireRole AOP + @AdminOp 日志切面 + 全局异常(错误码逐项)；10 张表 schema/seed 幂等随启动执行；Redis 商品缓存 TTL 60s 变更逐出；下单价格快照/requestId 幂等(uk_request)/条件 UPDATE 防超卖/30 分钟未支付自动取消；端点 curl 校验 101/101 绿。

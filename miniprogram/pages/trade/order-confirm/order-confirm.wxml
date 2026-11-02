@@ -11,13 +11,15 @@
     <view class="confirm-item" wx:for="{{items}}" wx:key="goodsId">
       <view class="confirm-title">{{item.title}}</view>
       <view class="confirm-line muted">
-        单价 <text class="price">¥{{item.unitPrice}}</text> × {{item.num}} ＝ 小计 <text class="price">¥{{item.subtotalText}}</text>
+        单价 <text class="price">¥{{item.unitPrice}}</text> × {{item.num}} ＝ 小计 <text class="price">¥{{item.subtotalText}}</text> ｜ {{item.freightText}}
       </view>
     </view>
   </view>
 
   <view class="card">
     <view class="confirm-line">支付方式：模拟支付（第一版仅此一项）</view>
+    <view class="confirm-line">商品合计：<text class="price">¥{{goodsTotal}}</text></view>
+    <view class="confirm-line">运费：{{freightTotalText}}</view>
     <view class="confirm-line">合计应付：<text class="price confirm-total">¥{{totalPrice}}</text></view>
   </view>
 
@@ -32,8 +34,9 @@
       <view class="pay-title">模拟支付</view>
       <view class="muted pay-line" wx:for="{{payOrders}}" wx:key="orderNo">
         {{item.goodsTitle}}（{{item.orderNo}}）
+        <text class="pay-freight">{{item.freightText}}</text>
       </view>
-      <view class="pay-line">共 {{payOrders.length}} 笔订单，应付 <text class="price pay-total">¥{{payTotal}}</text></view>
+      <view class="pay-line">共 {{payOrders.length}} 笔订单，应付（含运费） <text class="price pay-total">¥{{payTotal}}</text></view>
       <button class="btn btn-primary" bindtap="confirmPay" disabled="{{paying}}">
         {{paying ? '支付中…' : '确认支付'}}
       </button>

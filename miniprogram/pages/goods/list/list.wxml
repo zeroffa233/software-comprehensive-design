@@ -25,14 +25,17 @@
 
   <!-- 商品卡片列表 -->
   <view class="goods-card card" wx:for="{{goodsList}}" wx:key="id" bindtap="goDetail" data-id="{{item.id}}">
-    <image class="goods-img" src="{{item.mainImage}}" mode="aspectFill" />
+    <view class="goods-img-wrap">
+      <image class="goods-img" src="{{item.mainImage}}" mode="aspectFill" />
+      <view class="urgent-badge" wx:if="{{item.urgent === 1}}">急售</view>
+    </view>
     <view class="goods-info">
       <view class="goods-title">{{item.title}}</view>
       <view class="goods-price-row">
         <text class="price goods-price">¥{{item.price}}</text>
         <text class="muted">{{item.categoryName}} ｜ 库存{{item.stock}}</text>
       </view>
-      <view class="muted">{{item.createTime}} 发布</view>
+      <view class="muted">{{item.createTime}} 发布 ｜ 浏览 {{item.viewCount || 0}}</view>
     </view>
   </view>
 

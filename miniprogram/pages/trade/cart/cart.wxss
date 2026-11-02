@@ -79,7 +79,12 @@
   box-shadow: 0 -4rpx 12rpx rgba(0, 0, 0, 0.06);
 }
 .cart-bar-left {
+  flex: 1;
+  overflow: hidden;
   font-size: 28rpx;
+}
+.cart-freight-note {
+  margin-top: 4rpx;
 }
 .cart-total {
   font-size: 36rpx;

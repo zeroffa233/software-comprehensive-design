@@ -31,6 +31,14 @@ public class GoodsReq {
 
     private Boolean negotiable;
 
+    /** 急售标记（v2.1.0，可选） */
+    private Boolean urgent;
+
+    /** 运费 0-50.00，0=包邮（v2.1.0，可选，缺省 0） */
+    @DecimalMin(value = "0.00", message = "运费最低 0 元（0=包邮）")
+    @DecimalMax(value = "50.00", message = "运费最高 50 元")
+    private BigDecimal freight;
+
     @Min(value = 1, message = "库存最低 1")
     @Max(value = 99, message = "库存最高 99")
     private Integer stock;

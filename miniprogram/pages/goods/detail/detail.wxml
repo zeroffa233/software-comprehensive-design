@@ -12,15 +12,20 @@
     <view class="detail-price-row">
       <text class="price detail-price">¥{{goods.price}}</text>
       <text class="muted" wx:if="{{goods.negotiable}}">（可议价）</text>
+      <text class="tag tag-red" wx:if="{{goods.urgent === 1}}">急售</text>
       <text class="tag tag-blue detail-status">{{goods.status}}</text>
     </view>
     <view class="detail-title">{{goods.title}}</view>
-    <view class="muted detail-meta">分类：{{categoryPathText}} ｜ 库存：{{goods.stock}}</view>
+    <view class="muted detail-meta">分类：{{categoryPathText}} ｜ 库存：{{goods.stock}} ｜ {{freightText}}</view>
+    <view class="muted detail-meta">热度：浏览 {{goods.viewCount || 0}} 次 ｜ 加购 {{goods.cartCount || 0}} 人</view>
     <view class="muted detail-meta">卖家：{{goods.seller.nickname}} ｜ 发布时间：{{goods.createTime}}</view>
     <view class="form-error" wx:if="{{goods.offShelfReason}}">下架原因：{{goods.offShelfReason}}</view>
     <view class="divider"></view>
     <view class="detail-desc-title">商品描述</view>
     <view class="detail-desc">{{goods.description}}</view>
+    <view class="divider"></view>
+    <button class="btn btn-ghost ai-advice-btn" bindtap="aiAdvice">✦ AI 比对 / 买前建议</button>
+    <view class="form-hint ai-advice-hint">AI 助手帮你比对同类商品、给出选购建议</view>
   </view>
 
   <!-- 买家/游客操作区 -->

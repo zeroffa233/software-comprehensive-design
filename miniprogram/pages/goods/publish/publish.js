@@ -16,6 +16,8 @@ Page({
     price: '',
     negotiable: false,
     stock: '1',
+    freight: '0', // 运费（元），0 = 包邮，上限 50
+    urgent: false, // 急售开关
     description: '',
     // 分类级联
     categoryTree: [],
@@ -25,7 +27,7 @@ Page({
     secondIndex: 0,
     secondDisabled: true,
     // 图片（新建模式可增删；编辑模式只读）
-    images: [], // [{imageId, url}]
+    images: [], // [{imageId, url, tempPath}]
     uploading: false,
     // 状态
     submitting: false,
@@ -33,7 +35,11 @@ Page({
     // Agent 润色（SK-002：仅生成建议，确认后填入）
     polishModal: false,
     polishedText: '',
-    polishing: false
+    polishing: false,
+    // Agent 识图（SK-007：仅生成建议，确认后填入）
+    aiVisionLoading: false,
+    aiVisionModal: false,
+    aiVision: { title: '', description: '', tags: [], categoryLabel: '', matched: null }
   },
 
   onLoad(options) {
@@ -93,6 +99,8 @@ Page({
         price: String(goods.price),
         negotiable: !!goods.negotiable,
         stock: String(goods.stock),
+        freight: String(Number(goods.freight) || 0),
+        urgent: goods.urgent === 1,
         description: goods.description,
         categoryTree: this.data.categoryTree,
         topNames: this.data.topNames,
@@ -113,6 +121,8 @@ Page({
   onPrice(e) { this.setData({ price: e.detail.value }); },
   onNegotiable(e) { this.setData({ negotiable: e.detail.value.length > 0 }); },
   onStock(e) { this.setData({ stock: e.detail.value }); },
+  onFreight(e) { this.setData({ freight: e.detail.value }); },
+  onUrgent(e) { this.setData({ urgent: e.detail.value }); },
   onDescription(e) { this.setData({ description: e.detail.value }); },
 
   onTopCategoryChange(e) {
@@ -167,7 +177,7 @@ Page({
     this.setData({ uploading: true });
     const path = paths[0];
     api.upload('/goods/images', path).then((data) => {
-      const images = this.data.images.concat([{ imageId: data.imageId, url: data.url }]);
+      const images = this.data.images.concat([{ imageId: data.imageId, url: data.url, tempPath: path }]);
       this.setData({ images: images, uploading: false });
       this.uploadImages(paths.slice(1));
     }).catch(() => {
@@ -226,6 +236,92 @@ Page({
     this.setData({ polishModal: false });
   },
 
+  // —— Agent 识图填充（SK-007：POST /agent/describe-image，multipart image；仅生成建议，确认后填入） ——
+  describeImage() {
+    if (this.data.editId) { return; }
+    if (this.data.aiVisionLoading) { return; }
+    const first = this.data.images[0];
+    if (!first || !first.tempPath) {
+      wx.showToast({ title: '请先上传商品图片', icon: 'none' });
+      return;
+    }
+    this.setData({ aiVisionLoading: true });
+    api.upload('/agent/describe-image', first.tempPath).then((data) => {
+      const d = data || {};
+      const matched = this.matchCategory(d.categoryHint);
+      this.setData({
+        aiVisionLoading: false,
+        aiVisionModal: true,
+        aiVision: {
+          title: d.title || '',
+          description: d.description || '',
+          tags: d.tags || [],
+          categoryLabel: matched ? matched.label : '未匹配（请手选分类）',
+          matched: matched
+        }
+      });
+      if (!matched) {
+        wx.showToast({ title: '未匹配到分类，请手动选择', icon: 'none' });
+      }
+    }).catch(() => {
+      // 错误 toast 已由 request/upload 统一展示
+      this.setData({ aiVisionLoading: false });
+    });
+  },
+
+  // categoryHint 与分类级联匹配：先匹配二级分类名，再退一级分类名
+  matchCategory(hint) {
+    const h = String(hint || '').trim();
+    if (!h) { return null; }
+    const tree = this.data.categoryTree;
+    for (let t = 0; t < tree.length; t++) {
+      const top = tree[t];
+      for (let s = 0; s < top.children.length; s++) {
+        const child = top.children[s];
+        if (child.name === h || child.name.indexOf(h) !== -1 || h.indexOf(child.name) !== -1) {
+          return {
+            topIndex: t + 1,
+            secondIndex: s + 1,
+            secondNames: ['请选择二级分类'].concat(top.children.map((c) => c.name)),
+            secondDisabled: false,
+            label: top.name + ' / ' + child.name
+          };
+        }
+      }
+    }
+    for (let t = 0; t < tree.length; t++) {
+      const top = tree[t];
+      if (top.name === h || top.name.indexOf(h) !== -1 || h.indexOf(top.name) !== -1) {
+        return {
+          topIndex: t + 1,
+          secondIndex: 0,
+          secondNames: ['请选择二级分类'].concat(top.children.map((c) => c.name)),
+          secondDisabled: top.children.length === 0,
+          label: top.name + '（请再选二级分类）'
+        };
+      }
+    }
+    return null;
+  },
+
+  applyAiVision() {
+    const v = this.data.aiVision;
+    const patch = { aiVisionModal: false };
+    if (v.title) { patch.title = v.title; }
+    if (v.description) { patch.description = v.description; }
+    if (v.matched) {
+      patch.topIndex = v.matched.topIndex;
+      patch.secondNames = v.matched.secondNames;
+      patch.secondIndex = v.matched.secondIndex;
+      patch.secondDisabled = v.matched.secondDisabled;
+    }
+    this.setData(patch);
+  },
+
+  dismissAiVision() {
+    this.setData({ aiVisionModal: false });
+  },
+
   // —— 校验（必填缺失/格式错误提示，不跳转） ——
   validate() {
     const title = this.data.title.trim();
@@ -242,6 +338,12 @@ Page({
     const stock = parseInt(this.data.stock, 10);
     if (!(stock >= 1 && stock <= 99) || String(stock) !== String(this.data.stock).trim()) {
       return '库存须为 1-99 的整数';
+    }
+    if (this.data.freight !== '') {
+      const freight = Number(this.data.freight);
+      if (isNaN(freight) || freight < 0 || freight > 50) {
+        return '运费须在 0-50 之间（0 为包邮）';
+      }
     }
     const desc = this.data.description.trim();
     if (desc.length < 10 || desc.length > 500) {
@@ -272,6 +374,8 @@ Page({
     if (this.data.submitting) { return; }
     this.setData({ submitting: true, showConfirm: false });
     const categoryId = this.currentCategoryId();
+    const freight = Number(this.data.freight) || 0;
+    const urgent = this.data.urgent ? 1 : 0;
     if (this.data.editId) {
       api.put('/goods/' + this.data.editId, {
         title: this.data.title.trim(),
@@ -279,6 +383,8 @@ Page({
         price: Number(this.data.price),
         negotiable: this.data.negotiable,
         stock: parseInt(this.data.stock, 10),
+        freight: freight,
+        urgent: urgent,
         description: this.data.description.trim()
       }).then(() => {
         this.setData({ submitting: false });
@@ -297,6 +403,8 @@ Page({
       price: Number(this.data.price),
       negotiable: this.data.negotiable,
       stock: parseInt(this.data.stock, 10),
+      freight: freight,
+      urgent: urgent,
       description: this.data.description.trim(),
       imageIds: this.data.images.map((img) => img.imageId),
       requestId: api.genRequestId()

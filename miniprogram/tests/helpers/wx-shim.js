@@ -111,7 +111,17 @@ function createWxShim() {
         '"; filename="upload.png"\r\nContent-Type: image/png\r\n\r\n'
       )
     );
-    parts.push(Buffer.from('fake-png-bytes-for-test'));
+    // 优先读取真实文件（live 冒烟对真实后端需真实图片字节）；无文件时回退测试字节（契约 mock 用）
+    let fileBytes;
+    try {
+      if (options.filePath && require('fs').existsSync(options.filePath)) {
+        fileBytes = require('fs').readFileSync(options.filePath);
+      }
+    } catch (e) { /* fallthrough */ }
+    if (!fileBytes) {
+      fileBytes = Buffer.from('fake-png-bytes-for-test');
+    }
+    parts.push(fileBytes);
     parts.push(Buffer.from('\r\n--' + boundary + '--\r\n'));
     const body = Buffer.concat(parts);
     const req = http.request(

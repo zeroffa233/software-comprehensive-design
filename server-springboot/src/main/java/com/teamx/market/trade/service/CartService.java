@@ -29,6 +29,7 @@ public class CartService {
     private final CartItemMapper cartItemMapper;
     private final GoodsMapper goodsMapper;
     private final GoodsImageMapper goodsImageMapper;
+    private final com.teamx.market.goods.service.GoodsService goodsService;
 
     /** #1 查询购物车全部条目（含商品快照） */
     public Map<String, Object> list(long uid) {
@@ -56,6 +57,8 @@ public class CartService {
             m.put("title", g == null ? "" : g.getTitle());
             m.put("mainImage", mainImages.getOrDefault(item.getGoodsId(), ""));
             m.put("unitPrice", g == null ? BigDecimal.ZERO : g.getPrice());
+            m.put("freight", g == null ? BigDecimal.ZERO : g.getFreight());
+            m.put("urgent", g != null && g.getUrgent() != null && g.getUrgent() == 1);
             m.put("stock", g == null ? 0 : g.getStock());
             m.put("num", item.getNum());
             return m;
@@ -92,6 +95,11 @@ public class CartService {
             existing.setNum(newNum);
             cartItemMapper.updateById(existing);
         }
+        // v2.1.0：加购次数 +1
+        goodsMapper.update(null, new com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper<Goods>()
+                .eq(Goods::getId, goodsId)
+                .setSql("cart_count = cart_count + 1"));
+        goodsService.evictDetailCache(goodsId);
         return result(goodsId, newNum, uid);
     }
 
@@ -123,6 +131,11 @@ public class CartService {
         if (rows == 0) {
             throw BizException.notFound("购物车条目不存在");
         }
+        // v2.1.0：加购次数 -1（下限 0）
+        goodsMapper.update(null, new com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper<Goods>()
+                .eq(Goods::getId, goodsId)
+                .setSql("cart_count = GREATEST(cart_count - 1, 0)"));
+        goodsService.evictDetailCache(goodsId);
     }
 
     private Map<String, Object> result(long goodsId, int num, long uid) {

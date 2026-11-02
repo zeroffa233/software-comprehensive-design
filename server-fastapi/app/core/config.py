@@ -27,7 +27,7 @@ class Settings:
 
     LLM_API_KEY: str = _get("LLM_API_KEY")
     LLM_BASE_URL: str = _get("LLM_BASE_URL", "https://api.openai.com/v1").rstrip("/")
-    LLM_MODEL: str = _get("LLM_MODEL", "gpt-4o-mini")
+    LLM_MODEL: str = _get("LLM_MODEL", "glm-5.3-flash")
 
     SESSION_TTL_SECS: int = 30 * 60   # agent:session:{uid} TTL
     SESSION_MAX_ROUNDS: int = 10      # 保留最近 10 轮

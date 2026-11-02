@@ -5,13 +5,16 @@ const auth = require('../../../utils/auth');
 Page({
   data: {
     source: 'cart', // cart | direct
-    items: [], // [{goodsId,title,unitPrice,num,stock}]
+    items: [], // [{goodsId,title,unitPrice,num,stock,freight,freightText}]
     remark: '',
+    goodsTotal: '0.00',
+    freightTotal: '0.00',
+    freightTotalText: '包邮',
     totalPrice: '0.00',
     submitting: false,
     // 模拟支付弹窗
     showPay: false,
-    payOrders: [], // [{orderNo, dealPrice}]
+    payOrders: [], // [{orderNo, dealPrice, freightAmount, freightText, totalAmount, goodsTitle}]
     payTotal: '0.00',
     paying: false
   },
@@ -34,8 +37,20 @@ Page({
       return;
     }
     const total = items.reduce((sum, it) => sum + it.unitPrice * it.num, 0);
-    items.forEach((it) => { it.subtotalText = (it.unitPrice * it.num).toFixed(2); });
-    this.setData({ source: source, items: items, totalPrice: total.toFixed(2) });
+    const freightTotal = items.reduce((sum, it) => sum + (Number(it.freight) || 0), 0);
+    items.forEach((it) => {
+      it.subtotalText = (it.unitPrice * it.num).toFixed(2);
+      const f = Number(it.freight) || 0;
+      it.freightText = f > 0 ? '运费 ¥' + f : '包邮';
+    });
+    this.setData({
+      source: source,
+      items: items,
+      goodsTotal: total.toFixed(2),
+      freightTotal: freightTotal.toFixed(2),
+      freightTotalText: freightTotal > 0 ? '¥' + freightTotal.toFixed(2) : '包邮',
+      totalPrice: (total + freightTotal).toFixed(2)
+    });
   },
 
   onRemark(e) { this.setData({ remark: e.detail.value }); },
@@ -62,11 +77,11 @@ Page({
     this.submitItem(this.data.items.slice(), []);
   },
 
-  // 递归提交剩余条目；created 累计已创建订单
+  // 递归提交剩余条目；created 累计已创建订单（含运费/合计，缺省时按本地快照兜底）
   submitItem(remaining, created) {
     if (remaining.length === 0) {
       // 全部提交成功 → 弹出模拟支付
-      const total = created.reduce((sum, o) => sum + o.dealPrice, 0);
+      const total = created.reduce((sum, o) => sum + o.totalAmount, 0);
       this.setData({
         submitting: false,
         showPay: true,
@@ -82,7 +97,17 @@ Page({
       remark: remarkOf(this.data.remark),
       requestId: api.genRequestId()
     }).then((data) => {
-      created.push({ orderNo: data.orderNo, dealPrice: data.dealPrice, goodsTitle: item.title });
+      const freightAmount = typeof (data && data.freightAmount) === 'number' ? data.freightAmount : (Number(item.freight) || 0);
+      const dealPrice = data.dealPrice;
+      const totalAmount = typeof (data && data.totalAmount) === 'number' ? data.totalAmount : +(dealPrice + freightAmount).toFixed(2);
+      created.push({
+        orderNo: data.orderNo,
+        dealPrice: dealPrice,
+        freightAmount: freightAmount,
+        freightText: freightAmount > 0 ? '运费 ¥' + freightAmount : '包邮',
+        totalAmount: totalAmount,
+        goodsTitle: item.title
+      });
       this.submitItem(remaining.slice(1), created);
     }).catch((err) => {
       if (err && err.code === 409 && err.data && err.data.existOrderNo) {

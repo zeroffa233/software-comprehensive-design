@@ -30,6 +30,10 @@ GOODS_PATTERNS = r"(查|搜|找|看看|浏览|有没有|求购|收一?个|推荐
 HELP_PATTERNS = r"(你是谁|你能(做|干)什么|有什么功能|怎么用|如何使用|使用帮助|帮助|帮助我|新手指南|怎么(注册|登录|买|卖|发布|退货)|平台规则|介绍一下|在吗|你好|您好|hi|hello)"
 PUBLISH_PATTERNS = r"(润色|优化).{0,6}(描述|文案|介绍)|(帮我|给我)(写|生成).{0,6}(描述|文案|标题|介绍)|(推荐|建议).{0,4}(分类|类目)|发布.{0,4}(辅助|建议|帮助)|怎么写(商品|描述|标题)|(商品|宝贝).{0,4}描述.{0,6}(怎么|帮)"
 
+COMPARE_PATTERNS = r"(比对|比较|对比|pk一下)"
+ADVICE_PATTERNS = r"(值不?值得买|值得买吗|值不值|值得入手|建议买吗|划算吗|选哪个|哪个好|哪个更(值|划算|好)|推荐买吗)"
+ORDER_DRAFT_PATTERNS = r"(帮我|给我|麻烦)?\s*(下单一?下?|下一?单|下个单|购入?|买下)|我想?买|我要买"
+
 ORDINAL_RE = re.compile(r"第\s*([0-9一二两三四五六七八九十]+)\s*[个条件只台本]?")
 
 
@@ -60,7 +64,7 @@ def _is_forbidden(prompt: str) -> bool:
 
 def decide(prompt: str, state: dict) -> dict:
     """规则意图识别。返回 {"type": ..., "params": {...}}。type ∈
-    SK-001/SK-002/SK-003/HELP/FORBIDDEN/FALLBACK。"""
+    SK-001~SK-006/HELP/FORBIDDEN/FALLBACK。"""
     p = prompt.strip()
     if _is_forbidden(p):
         return {"type": "FORBIDDEN", "params": {}}
@@ -81,6 +85,15 @@ def decide(prompt: str, state: dict) -> dict:
     if re.search(PUBLISH_PATTERNS, p):
         draft = _extract_draft(p)
         return {"type": "SK-002", "params": {"draft": draft}}
+
+    if re.search(COMPARE_PATTERNS, p):
+        return {"type": "SK-004", "params": {"prompt": p}}
+
+    if re.search(ADVICE_PATTERNS, p):
+        return {"type": "SK-005", "params": {"prompt": p}}
+
+    if re.search(ORDER_DRAFT_PATTERNS, p):
+        return {"type": "SK-006", "params": {"prompt": p}}
 
     if re.search(HELP_PATTERNS, p):
         return {"type": "HELP", "params": {}}
@@ -104,20 +117,29 @@ def _extract_draft(p: str) -> str:
 # ---- 规则模式话术模板 ----
 
 DENY_TEXT = ("抱歉，该操作不在 Agent 可用范围内。出于平台安全设计（report §9），"
-             "我只能提供三类只读/低风险能力：①查询在售商品 ②商品发布辅助（仅生成建议文本）"
-             "③查询你本人订单状态。删除/下架/支付/查询他人信息等高风险操作请到小程序对应页面登录后操作。")
+             "我只能提供只读/低风险能力：①查询在售商品 ②商品发布辅助（仅生成建议文本）"
+             "③查询你本人订单状态 ④商品比对与选购建议 ⑤生成下单草稿（不真正下单）"
+             "⑥识图生成商品描述（发布页回填）。删除/下架/支付/查询他人信息等高风险操作"
+             "请到小程序对应页面登录后操作。")
 
 HELP_TEXT = (
     "你好，我是校园二手平台智能助手 🤖 我能帮你：\n"
     "1）查在售商品：如\"帮我找一本高数教材\"\"有没有便宜的手机\"；\n"
     "2）查你的订单：如\"我的订单\"\"第一个订单到哪一步了\"（支持追问\"第二个呢\"）；\n"
-    "3）发布辅助：把商品草稿发给我，我帮你润色标题与描述、推荐分类。\n"
+    "3）发布辅助：把商品草稿发给我，我帮你润色标题与描述、推荐分类；\n"
+    "4）商品比对：如\"比对 高数教材 和 iPhone\"（支持\"比对第一个和第二个\"）；\n"
+    "5）选购建议：如\"高等数学教材 值不值得买\"；\n"
+    "6）下单草稿：如\"帮我下单 高等数学教材\"（生成草稿，需到商品页确认下单）；\n"
+    "7）识图生成描述：在发布页上传照片一键生成标题/描述/分类/标签。\n"
     "为保护账号与交易安全，我不执行删除、下架、支付等高风险操作。")
 
 FALLBACK_TEXT = ("抱歉，我没太理解你的意思。你可以试试：\n"
                  "· \"帮我查在售的手机\" → 查商品\n"
                  "· \"我的订单\" → 查订单状态\n"
-                 "· \"帮我润色商品描述：<粘贴草稿>\" → 发布辅助")
+                 "· \"帮我润色商品描述：<粘贴草稿>\" → 发布辅助\n"
+                 "· \"比对 高数教材 和 iPhone\" → 商品比对\n"
+                 "· \"XX 值不值得买\" → 选购建议\n"
+                 "· \"帮我下单 XX\" → 生成下单草稿")
 
 RULE_MODE_SUFFIX = "\n（以上回复由内置规则引擎生成——未配置或未连通 LLM 服务）"
 

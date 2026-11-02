@@ -35,6 +35,38 @@
   margin-left: 20rpx;
   flex-shrink: 0;
 }
+.urgent-row {
+  margin-left: 24rpx;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  transform: scale(0.8);
+  transform-origin: right center;
+}
+.urgent-label {
+  color: #d33;
+  font-size: 26rpx;
+}
+.ai-vision-row {
+  display: flex;
+  align-items: center;
+  margin-top: 12rpx;
+}
+.ai-vision-line {
+  margin-bottom: 12rpx;
+  font-size: 26rpx;
+  line-height: 1.6;
+  word-break: break-all;
+}
+.ai-vision-label {
+  display: inline-block;
+  width: 76rpx;
+  color: #8a9099;
+  flex-shrink: 0;
+}
+.ai-vision-tag {
+  margin-right: 8rpx;
+}
 .polish-row {
   display: flex;
   align-items: center;

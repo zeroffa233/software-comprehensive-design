@@ -15,7 +15,7 @@
       <image class="cart-img" src="{{item.mainImage}}" mode="aspectFill" bindtap="goDetail" data-goodsid="{{item.goodsId}}" />
       <view class="cart-info">
         <view class="cart-title" bindtap="goDetail" data-goodsid="{{item.goodsId}}">{{item.title}}</view>
-        <view class="muted">单价 <text class="price">¥{{item.unitPrice}}</text> ｜ 库存 {{item.stock}}</view>
+        <view class="muted">单价 <text class="price">¥{{item.unitPrice}}</text> ｜ 库存 {{item.stock}} ｜ {{item.freightText}}</view>
         <view class="cart-bottom">
           <view class="stepper">
             <view class="step-btn {{item.num <= 1 ? 'step-disabled' : ''}}" bindtap="onMinus" data-index="{{index}}">−</view>
@@ -30,8 +30,13 @@
     <!-- 底部结算栏 -->
     <view class="cart-bar">
       <view class="cart-bar-left">
-        <text>已选 {{selectedCount}} 件，合计 </text>
-        <text class="price cart-total">¥{{totalPrice}}</text>
+        <view>
+          <text>已选 {{selectedCount}} 件，商品合计 </text>
+          <text class="price cart-total">¥{{totalPrice}}</text>
+        </view>
+        <view class="muted cart-freight-note">
+          {{freightTotal === '0.00' ? '所选商品包邮' : '另加运费 ¥' + freightTotal + '，合计以结算页为准'}}
+        </view>
       </view>
       <button class="btn btn-primary cart-checkout-btn" bindtap="checkout">去结算</button>
     </view>
