@@ -1,7 +1,7 @@
 """SK-007 识图生成描述：POST /api/v1/agent/describe-image。
 
 入参：multipart image（jpg/png/webp，≤5MB，最短边 ≥14px）或 JSON {imageUrl}
-（仅允许指向后端 /images/** 静态路径，防 SSRF）。视觉 LLM（glm-5.3-flash，
+（仅允许指向后端 /images/** 静态路径，防 SSRF）。视觉 LLM（doubao-seed-2.0-mini，
 content 数组 image_url）生成 {title, description, categoryHint, tags[]} 供发布页
 一键回填；不落业务库，调用留痕 agent_chat_log（skill_name=SK-007）。
 LLM 无视觉/识别失败 → 4001。

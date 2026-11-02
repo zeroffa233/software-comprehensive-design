@@ -6,6 +6,7 @@
 ## 2026-11-02 v2.1.0 AI 与交易增强（对照课次启发式建议）
 
 - **运行时 LLM 切换 glm-5.3-flash**（同一 ARK coding plan key，实测该模型支持文本+视觉；doubao-seed-2.0-mini 退役）。glm 为推理模型：token 预算提升至 1200-2000 并加空 content 守卫（reasoning 占满时回退规则模式）。
+  - **2026-11-02 修订（用户裁定：成本优先）**：运行时模型还原为 `doubao-seed-2.0-mini`（实测该模型同样支持文本+视觉，SK-005/003/007 全链路复验通过）；token 预算与空 content 守卫保留（对两模型均安全），glm 作为可切换选项写入 README。
 - **Agent 新增四个 Skill（全只读/草稿，守报告 §9 红线）**：SK-004 商品比对（结构化数据→LLM 对比表+结论）、SK-005 选购建议（热度/急售/价格 vs 同类均价，附免责）、SK-006 智能下单草稿（data.draft 供 UI 确认，**不写业务库**，实测下单前后订单数不变）、SK-007 识图生成发布描述（视觉模型，SpringBoot :8080 增 describe-image 薄代理维持单入口，multipart 字段 image，agent_chat_log 留痕）。
 - **商品竞争力机制**：goods.urgent 急售标记（发布/编辑可设）、view_count 浏览量（详情自增，缓存外执行）、cart_count 加购热度（加购 +1/移除 -1 下限 0）、GET /goods sort=hot（急售→浏览量→时间）；购物车变更即时逐出详情缓存。
 - **运费**：goods.freight（0=包邮，上限 50 非法 400）；orders.freight_amount/total_amount 快照（=价×量+运费）；列表/详情/订单/管理端全返回。SchemaMigrator 幂等补列（information_schema 检查，多次重启验证）。

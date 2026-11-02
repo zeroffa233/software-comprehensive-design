@@ -2,7 +2,7 @@
 
 优先级：env 配置 LLM_API_KEY/LLM_BASE_URL/LLM_MODEL 时启用 LLM 模式；
 未配置或调用失败 → 回退内置规则引擎（app/agent/rules.py，真实可用，非占位）。
-glm-5.3-flash 支持文本+视觉（messages content 数组 image_url），供 SK-007 识图。
+doubao-seed-2.0-mini 支持文本+视觉（messages content 数组 image_url），供 SK-007 识图。
 """
 import base64
 import json
@@ -69,7 +69,7 @@ def _post(messages: list[dict], max_tokens: int) -> str | None:
         )
         resp.raise_for_status()
         content = resp.json()["choices"][0]["message"]["content"] or ""
-        # glm-5.3-flash 为推理模型：reasoning 占满 max_tokens 时 content 为空，按失败回退
+        # 推理模型 reasoning 占满 max_tokens 时 content 可能为空，按失败回退（对 glm/doubao 均安全）
         return content if content.strip() else None
     except Exception:
         logger.warning("LLM 调用失败，回退规则模式", exc_info=True)

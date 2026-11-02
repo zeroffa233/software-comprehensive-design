@@ -57,7 +57,8 @@ uvicorn app.main:app --host 0.0.0.0 --port 8100
 - **MCP 报文**：`request_id / service_account=agent-svc / skill_id / params(含 user_id) / timestamp`，
   错误码 4001/4003/5000（report §9 §3.2）。
 - **LLM 接入**：OpenAI 兼容协议 httpx 直调（env `LLM_API_KEY/LLM_BASE_URL/LLM_MODEL`，
-  当前模型 `glm-5.3-flash`，支持文本+视觉——识图走 messages content 数组 `image_url`），
+  当前模型 `doubao-seed-2.0-mini`（便宜优先），支持文本+视觉——识图走 messages content 数组 `image_url`；
+  换 `glm-5.3-flash` 亦兼容（推理模型，token 预算已适配）），
   两段式——意图决策（会话历史一并送模型）+ 基于 Skill 实时取回的真实业务数据组织回复
   （SK-004/005 使用专用对比/建议提示词）；未配置 key 或调用失败时回退**内置规则引擎**
   （关键词意图识别 + 序号指代消解 + 模板回复，真实可用非占位，回复末尾如实标注"规则模式"）。
