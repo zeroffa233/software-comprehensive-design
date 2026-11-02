@@ -1,0 +1,139 @@
+<view class="container">
+  <view class="card">
+    <view class="form-item">
+      <label class="form-label"><text class="req">*</text>标题 <text class="counter">{{title.length}}/40</text></label>
+      <input class="form-input" maxlength="40" placeholder="5-40字，如：高数教材（第七版）" value="{{title}}" bindinput="onTitle" />
+    </view>
+
+    <view class="form-item">
+      <label class="form-label"><text class="req">*</text>分类（必须挂到二级分类）</label>
+      <view class="cascade-row">
+        <picker class="cascade-picker" mode="selector" range="{{topNames}}" value="{{topIndex}}" bindchange="onTopCategoryChange">
+          <view class="picker-value">{{topNames[topIndex]}}</view>
+        </picker>
+        <text class="cascade-sep">›</text>
+        <picker class="cascade-picker" mode="selector" range="{{secondNames}}" value="{{secondIndex}}" disabled="{{secondDisabled}}" bindchange="onSecondCategoryChange">
+          <view class="picker-value {{secondDisabled ? 'picker-disabled' : ''}}">{{secondNames[secondIndex]}}</view>
+        </picker>
+      </view>
+    </view>
+
+    <view class="form-item">
+      <label class="form-label"><text class="req">*</text>价格</label>
+      <view class="inline-row">
+        <text class="inline-prefix">¥</text>
+        <input class="form-input inline-input" type="digit" placeholder="0.01-9999.00" value="{{price}}" bindinput="onPrice" />
+        <label class="negotiable">
+          <checkbox-group bindchange="onNegotiable">
+            <checkbox value="negotiable" checked="{{negotiable}}" /> <text class="muted">可议价</text>
+          </checkbox-group>
+        </label>
+      </view>
+    </view>
+
+    <view class="form-item">
+      <label class="form-label"><text class="req">*</text>库存（1-99）</label>
+      <input class="form-input" type="number" placeholder="1-99" value="{{stock}}" bindinput="onStock" />
+    </view>
+
+    <view class="form-item">
+      <label class="form-label">运费（0 = 包邮，上限 50 元）</label>
+      <view class="inline-row">
+        <text class="inline-prefix">¥</text>
+        <input class="form-input inline-input" type="digit" placeholder="0-50，0 为包邮" value="{{freight}}" bindinput="onFreight" />
+        <view class="urgent-row">
+          <switch checked="{{urgent}}" bindchange="onUrgent" color="#d33" />
+          <text class="urgent-label">急售</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="form-item">
+      <label class="form-label"><text class="req">*</text>商品描述 <text class="counter">{{description.length}}/500</text></label>
+      <textarea class="form-textarea" maxlength="500" placeholder="10-500字，写明成色、瑕疵、购买渠道" value="{{description}}" bindinput="onDescription" />
+      <view class="polish-row" wx:if="{{!editId}}">
+        <button class="btn btn-ghost btn-mini" size="mini" bindtap="polishDescription" disabled="{{polishing}}">
+          {{polishing ? 'AI 润色中…' : '✦ Agent 润色文案'}}
+        </button>
+        <text class="muted">AI 仅生成建议，确认后填入</text>
+      </view>
+    </view>
+
+    <view class="form-item">
+      <label class="form-label">
+        <text class="req">*</text>商品图片（最多6张，第一张为主图，单张≤5MB，jpg/png/webp）
+      </label>
+      <view class="img-grid" wx:if="{{!editId}}">
+        <view class="img-cell" wx:for="{{images}}" wx:key="imageId">
+          <image class="img-thumb" src="{{item.url}}" mode="aspectFill" />
+          <view class="img-remove" bindtap="removeImage" data-index="{{index}}">×</view>
+          <view class="img-main-tag" wx:if="{{index === 0}}">主图</view>
+        </view>
+        <view class="img-cell img-add {{images.length >= 6 ? 'img-add-disabled' : ''}}" bindtap="chooseImage" wx:if="{{images.length < 6}}">
+          <text class="img-add-plus">＋</text>
+          <text class="muted">{{images.length}}/6</text>
+        </view>
+      </view>
+      <view class="img-grid" wx:else>
+        <view class="img-cell" wx:for="{{images}}" wx:key="url">
+          <image class="img-thumb" src="{{item.url}}" mode="aspectFill" />
+        </view>
+      </view>
+      <view class="form-hint" wx:if="{{editId}}">编辑模式暂不支持修改图片（第一版接口不提供已发布图片编辑）</view>
+      <view class="form-hint" wx:if="{{uploading}}">图片上传中，请稍候…</view>
+      <view class="ai-vision-row" wx:if="{{!editId && images.length > 0}}">
+        <button class="btn btn-ghost btn-mini" size="mini" bindtap="describeImage" disabled="{{aiVisionLoading}}">
+          {{aiVisionLoading ? 'AI 识图中…' : '✦ AI 识图填充'}}
+        </button>
+        <text class="muted">AI 识别主图生成标题/描述建议，确认后填入</text>
+      </view>
+    </view>
+  </view>
+
+  <button class="btn btn-primary" bindtap="openConfirm" disabled="{{submitting}}">
+    {{editId ? '保存修改' : '提交审核（二次确认）'}}
+  </button>
+
+  <!-- 提交二次确认 -->
+  <view class="mask" wx:if="{{showConfirm}}">
+    <view class="confirm-pop">
+      <view class="confirm-title">{{editId ? '确认保存修改？' : '确认提交审核？'}}</view>
+      <view class="confirm-body">「{{title}}」 ¥{{price}} ｜ 库存 {{stock}} ｜ {{freight > 0 ? '运费 ¥' + freight : '包邮'}}{{urgent ? ' ｜ 急售' : ''}}</view>
+      <view class="confirm-body muted">{{editId ? '保存后可能触发 10 分钟下单冷却' : '提交后进入待审核，审核通过自动上架'}}</view>
+      <view class="confirm-btns">
+        <button class="btn btn-ghost confirm-btn" bindtap="closeConfirm">再改改</button>
+        <button class="btn btn-primary confirm-btn" bindtap="submit" disabled="{{submitting}}">确定</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- Agent 润色建议弹层（SK-002：仅生成建议，须用户确认后填入，不直接落库） -->
+  <view class="mask" wx:if="{{polishModal}}">
+    <view class="confirm-pop">
+      <view class="confirm-title">AI 润色建议</view>
+      <view class="polish-text">{{polishedText}}</view>
+      <view class="confirm-btns">
+        <button class="btn btn-ghost confirm-btn" bindtap="dismissPolish">不采用</button>
+        <button class="btn btn-primary confirm-btn" bindtap="applyPolish">填入描述</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- Agent 识图建议弹层（SK-007：仅生成建议，确认后填入；分类未匹配则手选） -->
+  <view class="mask" wx:if="{{aiVisionModal}}">
+    <view class="confirm-pop">
+      <view class="confirm-title">AI 识图建议</view>
+      <view class="ai-vision-line"><text class="ai-vision-label">标题</text>{{aiVision.title}}</view>
+      <view class="ai-vision-line"><text class="ai-vision-label">描述</text>{{aiVision.description}}</view>
+      <view class="ai-vision-line" wx:if="{{aiVision.tags.length > 0}}">
+        <text class="ai-vision-label">标签</text>
+        <text class="tag tag-blue ai-vision-tag" wx:for="{{aiVision.tags}}" wx:key="*this">{{item}}</text>
+      </view>
+      <view class="ai-vision-line"><text class="ai-vision-label">分类</text>{{aiVision.categoryLabel}}</view>
+      <view class="confirm-btns">
+        <button class="btn btn-ghost confirm-btn" bindtap="dismissAiVision">不采用</button>
+        <button class="btn btn-primary confirm-btn" bindtap="applyAiVision">确认填入</button>
+      </view>
+    </view>
+  </view>
+</view>

@@ -49,3 +49,32 @@
 | 条目9 我的商品列表（状态筛选、展示下架原因） | #10 GET /goods/mine（详情见 #3 GET /goods/{id}） |
 
 > 状态流转实现口径：#4 发布→待审核；#11→在售；#12→草稿；#9 草稿/已下架→待审核；#8→已下架；#13→已下架（必填原因）；"已售出"由交易模块支付成功回调置位（周子航 api-购物交易.md），本模块不提供直接置"已售出"的端点。
+
+## v2.1.0 增补（AI 与交易增强）
+
+### 新增入参（#4 发布 / #7 编辑，均可选，缺省沿用默认值）
+
+| 字段 | 类型 | 校验 | 说明 |
+|---|---|---|---|
+| `urgent` | Boolean | — | 急售标记；缺省 false。存储为 goods.urgent 0/1，响应转为 Boolean |
+| `freight` | BigDecimal | 0 ≤ freight ≤ 50.00，非法 400 | 运费（元）；缺省 0.00 = 包邮 |
+
+### sort 白名单扩展（#2 GET /goods）
+
+- 新增 `sort=hot`：`ORDER BY urgent DESC, view_count DESC, create_time DESC`（急售优先 → 浏览量 → 时间）。
+- 原白名单 `create_time`/`price` 不变；其余取值仍返回 400。
+
+### 列表/详情响应新增字段（#2 / #3）
+
+| 字段 | 类型 | 说明 |
+|---|---|---|
+| `urgent` | Boolean | 急售标记 |
+| `viewCount` | Integer | 浏览量；详情每次访问 +1（UPDATE 在详情缓存读写之外，独立执行；响应返回自增后的值） |
+| `cartCount` | Integer | 加购次数；加购 +1、移除 -1（下限 0）。购物车变更后即时逐出该商品详情缓存 |
+| `freight` | BigDecimal | 运费；0 = 包邮 |
+
+### 实现口径
+
+- view_count 自增不区分角色（游客/属主/管理员访问详情均计一次）。
+- freight/urgent 编辑语义与 negotiable 一致：入参非空才覆盖。
+- 数据库侧见 db-商品发布.md「v2.1.0 增补」；启动时 SchemaMigrator 检查 information_schema 幂等补列。

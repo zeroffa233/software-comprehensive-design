@@ -1,0 +1,35 @@
+.reg-card {
+  padding: 48rpx 40rpx;
+  margin-top: 40rpx;
+}
+.reg-title {
+  font-size: 40rpx;
+  font-weight: 600;
+  text-align: center;
+  color: #0a66c2;
+  margin-bottom: 40rpx;
+}
+.sms-row {
+  display: flex;
+  align-items: center;
+}
+.sms-input {
+  flex: 1;
+}
+.sms-btn {
+  margin-left: 16rpx;
+  flex-shrink: 0;
+}
+.agree-row {
+  margin: 32rpx 0;
+}
+.agree-text {
+  font-size: 26rpx;
+  color: #5a6068;
+  margin-left: 8rpx;
+}
+.reg-links {
+  text-align: center;
+  margin-top: 32rpx;
+  font-size: 26rpx;
+}

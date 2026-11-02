@@ -91,3 +91,16 @@ graph LR
 
 - `cart_item`/`orders`/`review`/`message` 的用户与商品外键分别指向 用户及权限模块 `user` 表、商品发布模块 `goods` 表；交易侧不冗余用户昵称等可变信息，展示时联查或走缓存。
 - 订单状态流转时间线由 `create_time/pay_time/finish_time/cancel_time` 四个时间节点拼装，不另建流水表（第一版从简，待课次4校准）。
+
+## v2.1.0 增补（AI 与交易增强）
+
+### orders 表新增列
+
+| 字段名 | 类型 | 约束 | 说明 |
+|---|---|---|---|
+| freight_amount | DECIMAL(6,2) | NOT NULL DEFAULT 0 | 运费快照＝下单时刻 goods.freight（0=包邮） |
+| total_amount | DECIMAL(10,2) | NOT NULL DEFAULT 0 | 应付总额＝deal_price × num + freight_amount |
+
+- 两列均为下单时一次性快照，此后支付/取消/改价不回写（与 deal_price 口径一致）。
+- 订单列表/详情/管理端响应以 camelCase 返回 `freightAmount`/`totalAmount`（api-购物交易.md「v2.1.0 增补」）。
+- schema.sql 已在 CREATE TABLE 中加列；旧库由启动组件 SchemaMigrator 查 information_schema.COLUMNS 幂等 ALTER 补列，与 db-商品发布.md「v2.1.0 增补」同一机制。

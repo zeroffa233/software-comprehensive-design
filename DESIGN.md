@@ -14,6 +14,7 @@
 | 必做 | 注册登录（手机号+验证码）、商品发布/浏览、购物车、订单交易（模拟支付）、管理员审核 |
 | 可选 | 评价体系、消息通知 |
 | 第一版不做 | 即时聊天、复杂风控、第三方真实支付（用模拟支付）、ES 搜索（用 MySQL LIKE/索引代替） |
+| 加分项取舍（2026-11-02 裁定） | 消息系统（RabbitMQ/Kafka）与 ES 站内搜索为课程加分项：本项目当前规模（校园二手、单实例、NFR-01 压测 p95=37ms）下无真实异步解耦与全文检索诉求，引入即"为加分而加分"，违背 §1 裁剪铁律，裁定不做；验收材料中如实说明取舍理由 |
 
 ## 2. 总体架构
 
@@ -83,10 +84,10 @@ graph TB
 
 `user`(id, phone*唯一*, password_hash, nickname, avatar, role, status, create_time)
 `category`(id, name, parent_id, sort)
-`goods`(id, seller_id, category_id, title, description, price, stock, status[草稿/待审核/在售/已下架/已售出], create_time, off_shelf_reason)
+`goods`(id, seller_id, category_id, title, description, price, stock, status[草稿/待审核/在售/已下架/已售出], urgent[急售标记], view_count, cart_count, freight[运费，0=包邮，上限50], create_time, off_shelf_reason)
 `goods_image`(id, goods_id, url, sort)
 `cart_item`(id, user_id, goods_id, num)
-`orders`(id, order_no, buyer_id, goods_id, deal_price, status[待支付/已支付/已完成/已取消], create_time)
+`orders`(id, order_no, buyer_id, goods_id, deal_price, num, freight_amount, total_amount[=deal_price×num+freight_amount], status[待支付/已支付/已完成/已取消], create_time)
 `review`(id, order_id, rater_id, ratee_id, score, content, create_time)【可选】
 `message`(id, user_id, type, content, is_read, create_time)【可选】
 `agent_chat_log`(id, user_id, prompt, response, skill_name, status, create_time)
@@ -103,6 +104,10 @@ graph TB
 | SK-001 | 商品信息查询 | 按条件查询在售商品公开信息 | 分类id、关键词、页码 | 商品id、标题、价格、状态 | 按条件查询 | 修改/删除商品、获取卖家手机号 |
 | SK-002 | 商品发布辅助 | 润色商品描述、推荐分类 | 商品草稿文本 | 建议标题、描述、分类id | 生成建议文本 | 直接落库发布（须用户确认） |
 | SK-003 | 订单状态查询 | 查询当前用户订单状态 | 订单号 | 状态、时间节点 | 查询本人订单 | 查询他人订单、取消/修改订单 |
+| SK-004 | 商品比对 | 比对两件及以上商品的价格/运费/热度/急售等 | 两个商品名或id | 对比表、结论 | 只读查询 | 修改商品、获取卖家手机号 |
+| SK-005 | 选购建议 | 基于热度/急售/同类均价给买前建议 | 商品名或id | 建议、理由 | 只读查询 | 直接下单、修改数据 |
+| SK-006 | 智能下单草稿 | 生成含运费合计的订单草稿供用户确认 | 商品名、数量 | 草稿（goodsId/num/totalAmount） | 只读生成草稿 | 调用下单/支付接口（须用户在客户端确认） |
+| SK-007 | 识图生成发布描述 | 视觉模型识别商品图生成标题/描述/分类建议 | 商品图片 | title/description/categoryHint/tags | 生成建议文本 | 直接落库发布 |
 
 ### 安全约束
 

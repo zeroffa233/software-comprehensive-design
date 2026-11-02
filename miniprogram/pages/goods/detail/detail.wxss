@@ -1,0 +1,139 @@
+.detail-swiper {
+  height: 560rpx;
+  border-radius: 16rpx;
+  overflow: hidden;
+  margin-bottom: 20rpx;
+}
+.detail-img {
+  width: 100%;
+  height: 560rpx;
+  background: #eef0f3;
+}
+.placeholder-img {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #a0a5ad;
+  border-radius: 16rpx;
+  margin-bottom: 20rpx;
+}
+.detail-price-row {
+  display: flex;
+  align-items: baseline;
+}
+.detail-price {
+  font-size: 44rpx;
+}
+.detail-price-row .tag-red {
+  margin-left: 16rpx;
+}
+.detail-status {
+  margin-left: auto;
+}
+.detail-title {
+  font-size: 34rpx;
+  font-weight: 600;
+  margin: 12rpx 0;
+  line-height: 1.5;
+}
+.detail-meta {
+  margin-bottom: 8rpx;
+}
+.detail-desc-title {
+  font-weight: 600;
+  margin-bottom: 8rpx;
+}
+.detail-desc {
+  font-size: 28rpx;
+  line-height: 1.7;
+  color: #3d4249;
+  white-space: pre-wrap;
+}
+.ai-advice-btn {
+  height: 72rpx;
+  line-height: 68rpx;
+  font-size: 28rpx;
+}
+.ai-advice-hint {
+  text-align: center;
+}
+.detail-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  padding: 16rpx 24rpx calc(16rpx + env(safe-area-inset-bottom));
+  background: #fff;
+  box-shadow: 0 -4rpx 12rpx rgba(0, 0, 0, 0.06);
+}
+.bar-btn {
+  flex: 1;
+  height: 76rpx;
+  line-height: 76rpx;
+}
+.bar-btn:first-child {
+  margin-right: 20rpx;
+}
+.detail-tip {
+  text-align: center;
+  padding: 24rpx 0 48rpx;
+}
+.owner-card {
+  border: 2rpx dashed #b8c4d4;
+}
+.owner-tip {
+  margin-bottom: 12rpx;
+}
+.mask {
+  position: fixed;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 10;
+  display: flex;
+  align-items: flex-end;
+}
+.num-pop {
+  width: 100%;
+  background: #fff;
+  border-radius: 24rpx 24rpx 0 0;
+  padding: 32rpx 32rpx calc(32rpx + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+}
+.num-pop-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  margin-bottom: 24rpx;
+}
+.stepper {
+  display: flex;
+  align-items: center;
+  margin-bottom: 32rpx;
+}
+.step-btn {
+  width: 72rpx;
+  height: 72rpx;
+  line-height: 68rpx;
+  text-align: center;
+  border: 2rpx solid #dcdfe4;
+  border-radius: 10rpx;
+  font-size: 36rpx;
+  background: #fafbfc;
+}
+.step-disabled {
+  color: #c0c4cc;
+}
+.step-input {
+  width: 140rpx;
+  height: 72rpx;
+  margin: 0 16rpx;
+  text-align: center;
+  border: 2rpx solid #dcdfe4;
+  border-radius: 10rpx;
+}
+.num-buy-btn {
+  margin-top: 20rpx;
+}

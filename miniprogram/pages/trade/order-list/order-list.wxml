@@ -1,0 +1,75 @@
+<view class="container">
+  <!-- 状态 Tab -->
+  <view class="tab-bar">
+    <view
+      class="tab-item {{tabIndex === index ? 'tab-item-active' : ''}}"
+      wx:for="{{tabs}}"
+      wx:key="*this"
+      wx:for-index="index"
+      wx:for-item="name"
+      bindtap="onTabChange"
+      data-index="{{index}}">
+      {{name}}
+    </view>
+  </view>
+
+  <!-- 订单号搜索（本页筛选） -->
+  <view class="card filter-card">
+    <input class="form-input filter-input" placeholder="订单号搜索（在已加载订单中筛选）" value="{{orderNoFilter}}" bindinput="onOrderNoFilter" bindconfirm="applyFilter" />
+    <button class="btn btn-ghost btn-mini" size="mini" bindtap="applyFilter">查询</button>
+    <text class="muted" wx:if="{{filterActive}}">命中 {{visibleList.length}} 条</text>
+  </view>
+
+  <!-- 订单条目 -->
+  <view class="card order-card" wx:for="{{visibleList}}" wx:key="orderNo">
+    <view class="order-head" bindtap="openDetail" data-orderno="{{item.orderNo}}">
+      <text class="muted">订单号 {{item.orderNo}}</text>
+      <text class="tag {{item.status === '待支付' ? 'tag-orange' : item.status === '已支付' ? 'tag-green' : item.status === '已完成' ? 'tag-blue' : 'tag-gray'}}">{{item.status}}</text>
+    </view>
+    <view class="order-body" bindtap="openDetail" data-orderno="{{item.orderNo}}">
+      <view class="order-title">{{item.goodsTitle}}</view>
+      <view class="order-price-line">
+        <text class="price">¥{{item.dealPrice}}</text>
+        <text class="muted"> × {{item.num}}</text>
+        <text class="muted order-freight" wx:if="{{item.freightText}}"> ＋ {{item.freightText}}</text>
+      </view>
+      <view class="order-total-line" wx:if="{{item.totalAmountText}}">{{item.totalAmountText}}</view>
+      <view class="muted" wx:if="{{item.keyTimesText}}">{{item.keyTimesText}}</view>
+    </view>
+    <view class="divider"></view>
+    <view class="order-actions">
+      <block wx:if="{{item.status === '待支付'}}">
+        <button class="btn btn-primary btn-mini" size="mini" bindtap="openPay" data-index="{{item._index}}">去支付</button>
+        <button class="btn btn-danger btn-mini" size="mini" bindtap="cancelOrder" data-index="{{item._index}}">取消订单</button>
+      </block>
+      <button class="btn btn-primary btn-mini" size="mini" wx:if="{{item.status === '已支付'}}"
+        bindtap="confirmOrder" data-index="{{item._index}}">确认收货</button>
+      <text class="muted" wx:if="{{item.status === '已完成' || item.status === '已取消'}}">—</text>
+    </view>
+  </view>
+
+  <view class="empty" wx:if="{{loaded && list.length === 0}}">
+    <view class="empty-icon">🧾</view>
+    <view>该状态下暂无订单</view>
+  </view>
+  <view class="loading" wx:if="{{loading}}">加载中…</view>
+  <view class="loading" wx:if="{{loaded && !hasMore && list.length > 0}}">— 没有更多了 —</view>
+
+  <!-- 订单详情时间线弹层 -->
+  <view class="mask" wx:if="{{detailOrder}}" bindtap="closeDetail">
+    <view class="detail-pop" catchtap="noop">
+      <view class="detail-title">订单详情</view>
+      <view class="muted">订单号：{{detailOrder.orderNo}}</view>
+      <view>金额：¥{{detailOrder.dealPrice}} × {{detailOrder.num}} <text wx:if="{{detailOrder.freightText}}">{{detailOrder.freightText}}</text> ｜ 状态：{{detailOrder.status}}</view>
+      <view class="order-detail-total" wx:if="{{detailOrder.totalAmountText}}">{{detailOrder.totalAmountText}}</view>
+      <view class="muted" wx:if="{{detailOrder.remark}}">备注：{{detailOrder.remark}}</view>
+      <view class="detail-section">状态流转</view>
+      <view class="timeline">
+        <view class="timeline-item" wx:for="{{detailTimeline}}" wx:key="time">
+          <view class="timeline-dot"></view>
+          <view class="timeline-text">{{item.action}} · {{item.time}}</view>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

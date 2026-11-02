@@ -1,0 +1,64 @@
+.section-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  margin-bottom: 16rpx;
+}
+.confirm-item {
+  padding: 12rpx 0;
+  border-bottom: 2rpx solid #f2f3f5;
+}
+.confirm-item:last-child {
+  border-bottom: none;
+}
+.confirm-title {
+  font-size: 28rpx;
+  margin-bottom: 6rpx;
+}
+.confirm-line {
+  margin-bottom: 12rpx;
+}
+.confirm-total {
+  font-size: 36rpx;
+}
+.back-cart-btn {
+  margin-top: 20rpx;
+}
+.mask {
+  position: fixed;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.pay-pop {
+  width: 600rpx;
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 40rpx 32rpx;
+  box-sizing: border-box;
+}
+.pay-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 20rpx;
+}
+.pay-line {
+  margin-bottom: 12rpx;
+  word-break: break-all;
+}
+.pay-freight {
+  color: #c07f10;
+  font-size: 24rpx;
+}
+.pay-total {
+  font-size: 40rpx;
+}
+.pay-later-btn {
+  margin-top: 20rpx;
+}

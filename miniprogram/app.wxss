@@ -1,0 +1,187 @@
+/* app.wxss · 全局基础样式（整洁可用，非线框） */
+page {
+  background: #f5f6f8;
+  font-size: 28rpx;
+  color: #26292e;
+  font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
+}
+
+/* —— 通用容器 —— */
+.container {
+  padding: 24rpx;
+  box-sizing: border-box;
+}
+.card {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
+}
+
+/* —— 表单 —— */
+.form-item {
+  margin-bottom: 28rpx;
+}
+.form-label {
+  display: block;
+  font-size: 26rpx;
+  color: #5a6068;
+  margin-bottom: 10rpx;
+}
+.form-label .req {
+  color: #d33;
+  margin-right: 4rpx;
+}
+.form-input {
+  width: 100%;
+  height: 80rpx;
+  padding: 0 20rpx;
+  box-sizing: border-box;
+  border: 2rpx solid #dcdfe4;
+  border-radius: 10rpx;
+  font-size: 28rpx;
+  background: #fafbfc;
+}
+.form-input:focus {
+  border-color: #0a66c2;
+}
+.form-textarea {
+  width: 100%;
+  min-height: 160rpx;
+  padding: 16rpx 20rpx;
+  box-sizing: border-box;
+  border: 2rpx solid #dcdfe4;
+  border-radius: 10rpx;
+  font-size: 28rpx;
+  background: #fafbfc;
+}
+.form-error {
+  color: #d33;
+  font-size: 24rpx;
+  margin-top: 6rpx;
+}
+.form-hint {
+  color: #8a9099;
+  font-size: 24rpx;
+  margin-top: 6rpx;
+}
+.counter {
+  float: right;
+  color: #a0a5ad;
+  font-size: 24rpx;
+}
+
+/* —— 按钮 —— */
+.btn {
+  display: block;
+  width: 100%;
+  height: 84rpx;
+  line-height: 84rpx;
+  text-align: center;
+  border-radius: 12rpx;
+  font-size: 30rpx;
+  border: none;
+}
+.btn::after {
+  border: none;
+}
+.btn-primary {
+  background: #0a66c2;
+  color: #fff;
+}
+.btn-primary[disabled],
+.btn-primary.disabled {
+  background: #9fc3e8;
+  color: rgba(255, 255, 255, 0.8);
+}
+.btn-ghost {
+  background: #fff;
+  color: #0a66c2;
+  border: 2rpx solid #0a66c2;
+}
+.btn-danger {
+  background: #fff;
+  color: #d33;
+  border: 2rpx solid #d33;
+}
+.btn-mini {
+  display: inline-block;
+  width: auto;
+  height: 56rpx;
+  line-height: 52rpx;
+  padding: 0 24rpx;
+  margin: 0 12rpx 12rpx 0;
+  font-size: 24rpx;
+  border-radius: 8rpx;
+}
+.btn-mini::after {
+  border: none;
+}
+
+/* —— 状态标签 —— */
+.tag {
+  display: inline-block;
+  padding: 4rpx 14rpx;
+  border-radius: 8rpx;
+  font-size: 22rpx;
+  line-height: 1.5;
+}
+.tag-blue {
+  background: #e8f1fb;
+  color: #0a66c2;
+}
+.tag-green {
+  background: #e6f6ea;
+  color: #1d9d4c;
+}
+.tag-orange {
+  background: #fdf3e0;
+  color: #c07f10;
+}
+.tag-red {
+  background: #fdeaea;
+  color: #d33;
+}
+.tag-gray {
+  background: #f0f1f3;
+  color: #6b7078;
+}
+
+/* —— 文本 —— */
+.price {
+  color: #d33;
+  font-weight: 600;
+}
+.muted {
+  color: #8a9099;
+  font-size: 24rpx;
+}
+.link {
+  color: #0a66c2;
+}
+.divider {
+  height: 2rpx;
+  background: #eef0f3;
+  margin: 20rpx 0;
+}
+
+/* —— 空态 —— */
+.empty {
+  text-align: center;
+  color: #a0a5ad;
+  padding: 120rpx 0 80rpx;
+  font-size: 26rpx;
+}
+.empty .empty-icon {
+  font-size: 80rpx;
+  margin-bottom: 16rpx;
+}
+
+/* —— 加载态 —— */
+.loading {
+  text-align: center;
+  color: #a0a5ad;
+  font-size: 24rpx;
+  padding: 24rpx 0;
+}

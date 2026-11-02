@@ -1,0 +1,97 @@
+.filter-card {
+  padding: 20rpx 24rpx;
+}
+.filter-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+.filter-label {
+  font-size: 26rpx;
+  color: #5a6068;
+  width: 80rpx;
+  flex-shrink: 0;
+}
+.filter-picker {
+  flex: 1;
+}
+.picker-value {
+  padding: 10rpx 16rpx;
+  border: 2rpx solid #dcdfe4;
+  border-radius: 8rpx;
+  font-size: 26rpx;
+  background: #fafbfc;
+}
+.picker-disabled {
+  color: #c0c4cc;
+}
+.filter-sep {
+  margin: 0 12rpx;
+  color: #a0a5ad;
+}
+.search-row {
+  display: flex;
+  align-items: center;
+}
+.search-input {
+  flex: 1;
+}
+.search-btn {
+  margin-left: 16rpx;
+  flex-shrink: 0;
+}
+.goods-card {
+  display: flex;
+  padding: 20rpx;
+}
+.goods-img-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+.goods-img {
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: 12rpx;
+  background: #eef0f3;
+  display: block;
+}
+.urgent-badge {
+  position: absolute;
+  left: 0;
+  top: 0;
+  padding: 2rpx 12rpx;
+  border-radius: 12rpx 0 12rpx 0;
+  background: #d33;
+  color: #fff;
+  font-size: 20rpx;
+  line-height: 1.6;
+}
+.goods-info {
+  flex: 1;
+  margin-left: 20rpx;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.goods-title {
+  font-size: 28rpx;
+  font-weight: 500;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+.goods-price-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+.goods-price {
+  font-size: 32rpx;
+}
+.home-quick {
+  margin-top: 12rpx;
+  text-align: right;
+  padding-bottom: 40rpx;
+}

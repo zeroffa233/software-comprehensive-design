@@ -1,0 +1,60 @@
+<view class="container">
+  <view class="card mine-head">
+    <text class="muted">共 {{total}} 件商品</text>
+    <button class="btn btn-primary btn-mini" size="mini" bindtap="goPublish">＋ 新建商品</button>
+  </view>
+
+  <!-- 状态筛选 Tab -->
+  <view class="tab-bar">
+    <view
+      class="tab-item {{tabIndex === index ? 'tab-item-active' : ''}}"
+      wx:for="{{tabs}}"
+      wx:key="*this"
+      wx:for-index="index"
+      wx:for-item="name"
+      bindtap="onTabChange"
+      data-index="{{index}}">
+      {{name}}
+    </view>
+  </view>
+
+  <!-- 商品卡片 -->
+  <view class="card mine-card" wx:for="{{list}}" wx:key="id">
+    <view class="mine-row" bindtap="goDetail" data-id="{{item.id}}">
+      <image class="mine-img" src="{{item.mainImage}}" mode="aspectFill" />
+      <view class="mine-info">
+        <view class="mine-title">{{item.title}}</view>
+        <view class="mine-price-row">
+          <text class="price">¥{{item.price}}</text>
+          <text class="muted">库存{{item.stock}}</text>
+        </view>
+        <view>
+          <text class="tag tag-green" wx:if="{{item.status === '在售'}}">在售</text>
+          <text class="tag tag-orange" wx:elif="{{item.status === '待审核'}}">待审核</text>
+          <text class="tag tag-red" wx:elif="{{item.status === '已下架'}}">已下架</text>
+          <text class="tag tag-gray" wx:elif="{{item.status === '已售出'}}">已售出</text>
+          <text class="tag tag-gray" wx:else>草稿</text>
+        </view>
+      </view>
+    </view>
+    <view class="form-error" wx:if="{{item.offShelfReason}}">管理员下架原因：{{item.offShelfReason}}</view>
+    <view class="divider"></view>
+    <view class="mine-actions">
+      <button class="btn btn-ghost btn-mini" size="mini" bindtap="goDetail" data-id="{{item.id}}">查看</button>
+      <button class="btn btn-ghost btn-mini" size="mini"
+        wx:if="{{item.status === '在售' || item.status === '待审核' || item.status === '草稿'}}"
+        bindtap="goEdit" data-id="{{item.id}}">编辑</button>
+      <button class="btn btn-danger btn-mini" size="mini" wx:if="{{item.status === '在售'}}"
+        bindtap="offShelf" data-index="{{index}}">下架</button>
+      <button class="btn btn-primary btn-mini" size="mini" wx:if="{{item.status === '草稿' || item.status === '已下架'}}"
+        bindtap="reList" data-index="{{index}}">重新上架</button>
+    </view>
+  </view>
+
+  <view class="empty" wx:if="{{loaded && list.length === 0}}">
+    <view class="empty-icon">📦</view>
+    <view>该状态下暂无商品</view>
+  </view>
+  <view class="loading" wx:if="{{loading}}">加载中…</view>
+  <view class="loading" wx:if="{{loaded && !hasMore && list.length > 0}}">— 没有更多了 —</view>
+</view>
