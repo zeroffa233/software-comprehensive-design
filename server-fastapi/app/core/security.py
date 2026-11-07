@@ -20,7 +20,8 @@ def decode_user_token(token: str) -> dict:
         raise AuthError("登录已过期，请重新登录")
     except jwt.InvalidTokenError:
         raise AuthError("Token 无效")
-    if not payload.get("uid"):
+    # agent-svc 服务令牌载荷为 uid=0（用户上下文由 X-User-Id 提供），其余令牌必须带 uid
+    if not payload.get("uid") and payload.get("role") != "AGENT_SVC":
         raise AuthError("Token 缺少用户标识")
     exp = payload.get("exp")
     if exp and exp < datetime.now(timezone.utc).timestamp() - 5:

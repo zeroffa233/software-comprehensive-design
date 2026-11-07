@@ -42,7 +42,7 @@ app = FastAPI(title="campus-market-agent", version="1.0.0", lifespan=lifespan)
 class ChatRequest(BaseModel):
     prompt: str = Field(..., description="用户自然语言输入，≤1000 字")
     requestId: str | None = Field(None, description="链路追踪 ID，缺省自动生成")
-    userId: int | None = Field(None, description="SpringBoot 代理转发时的用户上下文（可选）")
+    userId: int | None = Field(None, description="已废弃：用户上下文只从签名令牌解析，此字段仅为兼容旧客户端保留，不参与鉴权")
 
 
 @app.get("/health")
@@ -51,39 +51,35 @@ def health():
             "springbootReady": sb_client.ready, "llmMode": llm.llm_available()}
 
 
-def _resolve_uid(authorization: str | None, x_user_id: str | None,
-                 body_user_id: int | None) -> tuple[int | None, dict | None]:
-    """用户上下文解析（双通道兼容）：
-    1) SpringBoot 代理：X-User-Id 头（代理侧已完成用户鉴权），优先；
-    2) 直连：Authorization Bearer 用户 JWT（验签+有效期，role ∈ USER/ADMIN）。
+def _resolve_uid(authorization: str | None, x_user_id: str | None) -> tuple[int | None, dict | None]:
+    """用户上下文解析（只认签名令牌，绝不信任裸请求头/请求体）：
+    1) 代理转发：Bearer 为 SpringBoot 签发的 AGENT_SVC 服务令牌 → uid 取 X-User-Id 头；
+    2) 直连：Bearer 为用户 JWT（验签 + 有效期，role ∈ USER/ADMIN）→ uid 取令牌载荷。
+    没有令牌一律 401：否则任何人带一个 X-User-Id（或 body.userId）就能冒充他人读订单。
     返回 (uid, err_response_dict)。"""
-    if x_user_id:
-        try:
-            return int(x_user_id), None
-        except ValueError:
-            return None, {"code": 400, "msg": "X-User-Id 头格式非法", "data": None}
-    if authorization:
-        token = authorization.removeprefix("Bearer ").strip()
-        try:
-            payload = decode_user_token(token)
-        except AuthError as e:
-            return None, {"code": 401, "msg": e.msg, "data": None}
-        if payload.get("role") in ("USER", "ADMIN"):
-            return int(payload["uid"]), None
-        if payload.get("role") == "AGENT_SVC":
-            if body_user_id:
-                return int(body_user_id), None
+    if not authorization:
+        return None, {"code": 401, "msg": "未登录或缺少用户上下文，请先登录", "data": None}
+    token = authorization.removeprefix("Bearer ").strip()
+    try:
+        payload = decode_user_token(token)
+    except AuthError as e:
+        return None, {"code": 401, "msg": e.msg, "data": None}
+    role = payload.get("role")
+    if role in ("USER", "ADMIN"):
+        return int(payload["uid"]), None
+    if role == "AGENT_SVC":
+        if not x_user_id:
             return None, {"code": 401, "msg": "服务令牌调用须携带 X-User-Id 用户上下文", "data": None}
-        return None, {"code": 401, "msg": "角色无权访问 Agent", "data": None}
-    if body_user_id:
-        return int(body_user_id), None
-    return None, {"code": 401, "msg": "未登录或缺少用户上下文，请先登录", "data": None}
+        if not x_user_id.isdigit() or int(x_user_id) <= 0:
+            return None, {"code": 400, "msg": "X-User-Id 头格式非法", "data": None}
+        return int(x_user_id), None
+    return None, {"code": 401, "msg": "角色无权访问 Agent", "data": None}
 
 
 @app.post("/api/v1/agent/chat")
 def agent_chat(body: ChatRequest, authorization: str | None = Header(default=None),
                x_user_id: str | None = Header(default=None)):
-    uid, err = _resolve_uid(authorization, x_user_id, body.userId)
+    uid, err = _resolve_uid(authorization, x_user_id)
     if err:
         return _json_err(err)
 
@@ -118,7 +114,7 @@ async def agent_describe_image(request: Request,
     视觉 LLM 生成 {title, description, categoryHint, tags[]} 供发布页一键回填；
     只读留痕 agent_chat_log（SK-007），不写业务库。"""
     started = time.monotonic()
-    uid, err = _resolve_uid(authorization, x_user_id, None)
+    uid, err = _resolve_uid(authorization, x_user_id)
     if err:
         return _json_err(err)
 
