@@ -3,6 +3,7 @@ package com.teamx.market.trade.service;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.teamx.market.auth.JwtUtil;
+import com.teamx.market.auth.service.UserService;
 import com.teamx.market.common.BizException;
 import com.teamx.market.common.PageResult;
 import com.teamx.market.goods.entity.Goods;
@@ -132,14 +133,25 @@ public class OrderService {
         if (order.getStatus() != Order.STATUS_PENDING_PAY) {
             throw BizException.conflict("订单状态不允许该操作");
         }
-        if (order.getCreateTime().plusMinutes(PAY_TIMEOUT_MINUTES).isBefore(LocalDateTime.now())) {
+        LocalDateTime now = LocalDateTime.now();
+        if (order.getCreateTime().plusMinutes(PAY_TIMEOUT_MINUTES).isBefore(now)) {
             // 已超时但定时任务未跑：立即取消再拒绝
             order.setStatus(Order.STATUS_CANCELED);
-            order.setCancelTime(LocalDateTime.now());
+            order.setCancelTime(now);
             orderMapper.updateById(order);
             throw BizException.conflict("订单已超时取消");
         }
-        // 条件 UPDATE 扣库存（防超卖）
+        // 先按 status=待支付 条件更新占住订单：并发重复支付时只有一个能成功，
+        // 否则两个线程都会读到"待支付"并各自扣一次库存（同一订单扣两次）。
+        int claimed = orderMapper.update(null, new LambdaUpdateWrapper<Order>()
+                .eq(Order::getOrderNo, orderNo)
+                .eq(Order::getStatus, Order.STATUS_PENDING_PAY)
+                .set(Order::getStatus, Order.STATUS_PAID)
+                .set(Order::getPayTime, now));
+        if (claimed == 0) {
+            throw BizException.conflict("订单状态不允许该操作");
+        }
+        // 条件 UPDATE 扣库存（防超卖）；失败抛异常，上面的状态更新随事务回滚
         int rows = goodsMapper.update(null, new LambdaUpdateWrapper<Goods>()
                 .eq(Goods::getId, order.getGoodsId())
                 .apply("stock >= {0}", order.getNum())
@@ -153,9 +165,9 @@ public class OrderService {
                 .eq(Goods::getStock, 0)
                 .eq(Goods::getStatus, Goods.STATUS_ON_SALE)
                 .set(Goods::getStatus, Goods.STATUS_SOLD));
+        // 状态与支付时间已由条件 UPDATE 写入，这里只同步内存对象供响应使用
         order.setStatus(Order.STATUS_PAID);
-        order.setPayTime(LocalDateTime.now());
-        orderMapper.updateById(order);
+        order.setPayTime(now);
         goodsService.evictGoodsCache();
 
         Map<String, Object> data = new HashMap<>();
@@ -288,7 +300,9 @@ public class OrderService {
         keyTimes.put("cancelTime", row.get("cancel_time"));
         m.put("keyTimes", keyTimes);
         if (row.containsKey("buyerPhone")) {
-            m.put("buyerPhone", row.get("buyerPhone"));
+            Object phone = row.get("buyerPhone");
+            // NFR-09：接口返回手机号统一脱敏（筛选入参仍用完整号码，仅出参脱敏）
+            m.put("buyerPhone", phone == null ? null : UserService.maskPhone(String.valueOf(phone)));
         }
         return m;
     }

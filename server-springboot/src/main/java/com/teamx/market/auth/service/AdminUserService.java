@@ -45,7 +45,7 @@ public class AdminUserService {
         List<Map<String, Object>> list = p.getRecords().stream().map(u -> {
             Map<String, Object> m = new HashMap<>();
             m.put("userId", u.getId());
-            m.put("phone", u.getPhone());
+            m.put("phone", UserService.maskPhone(u.getPhone()));
             m.put("nickname", u.getNickname());
             m.put("role", u.getRole());
             m.put("status", u.getStatus());
