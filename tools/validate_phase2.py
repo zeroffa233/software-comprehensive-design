@@ -111,12 +111,13 @@ def main() -> int:
         check(ok_cnt, f"(c) {doc} 端点数 {len(rows)} >= {minimum}")
         check(ok_prefix, f"(c) {doc} 所有端点均用 /api/v1 前缀")
 
-    # (d) git ls-files 无 .env
+    # (d) git ls-files 无 .env（`.env.example` 只是变量名模板，允许入库）
     tracked = subprocess.run(
         ["git", "ls-files"], cwd=ROOT, capture_output=True, text=True
     ).stdout.splitlines()
     env_files = [p for p in tracked
-                 if Path(p).name == ".env" or Path(p).name.startswith(".env.")]
+                 if (Path(p).name == ".env" or Path(p).name.startswith(".env."))
+                 and Path(p).name != ".env.example"]
     check(not env_files, f"(d) git 跟踪文件中无 .env（发现：{env_files or '无'}）")
 
     failed = [msg for ok, msg in results if not ok]
@@ -126,7 +127,7 @@ def main() -> int:
         for m in failed:
             print("  - " + m)
         return 1
-    print("全部通过 ✔ 第二阶段测试全绿")
+    print("全部通过 [OK] 第二阶段测试全绿")
     return 0
 
 

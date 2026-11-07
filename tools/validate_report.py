@@ -105,7 +105,7 @@ def main() -> int:
         for m in failed:
             print("  - " + m)
         return 1
-    print("全部通过 ✔ 阶段测试全绿")
+    print("全部通过 [OK] 阶段测试全绿")
     return 0
 
 
