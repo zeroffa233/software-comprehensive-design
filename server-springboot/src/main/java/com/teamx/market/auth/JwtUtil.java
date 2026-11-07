@@ -5,6 +5,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
@@ -25,9 +26,34 @@ public class JwtUtil {
     private final MarketProperties properties;
     private final byte[] secret;
 
-    public JwtUtil(MarketProperties properties) {
+    /** 仓库内可见的开发默认值：非 dev 环境仍使用它等于把令牌签发权交给所有读过代码的人 */
+    private static final String DEFAULT_DEV_SECRET = "campus-market-dev-2026-SECRET-KEY";
+
+    public JwtUtil(MarketProperties properties, Environment environment) {
         this.properties = properties;
-        this.secret = properties.getJwt().getSecret().getBytes(StandardCharsets.UTF_8);
+        String secretText = properties.getJwt().getSecret();
+        if (secretText == null || secretText.isEmpty()) {
+            throw new IllegalStateException("JWT 密钥未配置：请通过环境变量 JWT_SECRET 注入（≥32 字节）");
+        }
+        this.secret = secretText.getBytes(StandardCharsets.UTF_8);
+        if (!devLike(environment) && (DEFAULT_DEV_SECRET.equals(secretText) || this.secret.length < 32)) {
+            throw new IllegalStateException(
+                    "JWT_SECRET 使用了开发默认值或长度不足 32 字节：非 dev 环境必须注入独立密钥");
+        }
+    }
+
+    /** 未显式指定 profile 时按本地开发处理（application.yml 默认 dev），test 视同开发 */
+    private static boolean devLike(Environment environment) {
+        String[] profiles = environment.getActiveProfiles();
+        if (profiles == null || profiles.length == 0) {
+            return true;
+        }
+        for (String profile : profiles) {
+            if ("dev".equals(profile) || "test".equals(profile)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /** 签发访问令牌 */

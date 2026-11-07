@@ -8,6 +8,7 @@ import com.teamx.market.goods.mapper.GoodsMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.core.env.Environment;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -32,6 +33,7 @@ public class DataInitializer implements CommandLineRunner {
     private final UserMapper userMapper;
     private final GoodsMapper goodsMapper;
     private final MarketProperties properties;
+    private final Environment environment;
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 
     /** 手机号 → 明文密码（仅 dev 启动时使用，不持久化明文） */
@@ -42,8 +44,27 @@ public class DataInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        seedPasswords();
+        if (devLike()) {
+            seedPasswords();
+        } else {
+            // 生产环境重启会把种子账号密码改回默认值 → 等于内置后门，只允许 dev/test 执行
+            log.warn("非 dev/test profile：跳过种子账号口令初始化（生产不应存在种子账号）");
+        }
         seedImages();
+    }
+
+    /** 未显式指定 profile 时按本地开发处理（application.yml 默认 dev） */
+    private boolean devLike() {
+        String[] profiles = environment.getActiveProfiles();
+        if (profiles == null || profiles.length == 0) {
+            return true;
+        }
+        for (String profile : profiles) {
+            if ("dev".equals(profile) || "test".equals(profile)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void seedPasswords() {

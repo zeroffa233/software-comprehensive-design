@@ -14,6 +14,7 @@ import com.teamx.market.auth.mapper.UserMapper;
 import com.teamx.market.common.BizException;
 import com.teamx.market.common.Codes;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.env.Environment;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -44,6 +45,7 @@ public class AuthService {
     private final AdminOpLogMapper adminOpLogMapper;
     private final StringRedisTemplate redis;
     private final JwtUtil jwtUtil;
+    private final Environment environment;
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 
     /** 获取短信验证码（dev：data 附 devCode；无真实短信通道） */
@@ -56,9 +58,25 @@ public class AuthService {
         redis.opsForValue().set(KEY_SMS + req.getScene() + ":" + req.getPhone(), code, Duration.ofSeconds(300));
         redis.opsForValue().set(lockKey, "1", Duration.ofSeconds(60));
         Map<String, Object> data = new HashMap<>();
-        // dev accommodation（契约初稿·待课次4校准）：无真实短信通道，dev 环境回显验证码
-        data.put("devCode", code);
+        // 无真实短信通道：仅 dev/test 环境回显验证码；生产 profile 不回显（否则等于任意账号可登录）
+        if (devCodeEchoEnabled()) {
+            data.put("devCode", code);
+        }
         return data;
+    }
+
+    /** 是否处于本地开发环境（未显式指定 profile 时按开发处理，见 application.yml 默认 dev） */
+    private boolean devCodeEchoEnabled() {
+        String[] profiles = environment.getActiveProfiles();
+        if (profiles == null || profiles.length == 0) {
+            return true;
+        }
+        for (String profile : profiles) {
+            if ("dev".equals(profile) || "test".equals(profile)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /** 注册（注册即登录） */
