@@ -197,8 +197,9 @@ public class GoodsService {
     public Map<String, Object> detail(long id) {
         Object cached = redis.opsForValue().get(KEY_DETAIL_PREFIX + id);
         Map<String, Object> data;
-        if (cached != null) {
-            data = (Map<String, Object>) cached;
+        if (cached instanceof Map) {
+            // 复制一份再改：缓存里的 Map 是共享对象，直接 put 会污染缓存内容
+            data = new HashMap<>((Map<String, Object>) cached);
         } else {
             Goods g = goodsMapper.selectById(id);
             if (g == null) {
@@ -211,7 +212,10 @@ public class GoodsService {
                 throw BizException.notFound("商品不存在");
             }
             data = detailOf(g);
-            redis.opsForValue().set(KEY_DETAIL_PREFIX + id, data, Duration.ofSeconds(60));
+            // 只缓存"在售"的公开视图；属主/管理员看到的草稿/下架视图含 offShelfReason，缓存会被游客读到
+            if (g.getStatus() == Goods.STATUS_ON_SALE) {
+                redis.opsForValue().set(KEY_DETAIL_PREFIX + id, data, Duration.ofSeconds(60));
+            }
         }
         // 浏览量：每次访问 +1（独立 UPDATE，在缓存读写之外）
         goodsMapper.update(null, new com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper<Goods>()
