@@ -68,6 +68,16 @@ public class SchemaMigrator implements InitializingBean {
             JdbcTemplate jdbc = new JdbcTemplate(dataSource);
             String catalog = jdbc.queryForObject("SELECT DATABASE()", String.class);
             for (Map.Entry<String, Map<String, String>> table : REQUIRED_COLUMNS.entrySet()) {
+                // 该迁移只服务"旧库补列"场景：本迁移先于脚本初始化执行（seed.sql 要用新列），
+                // 全新数据库此时还没有表，若继续 ALTER 会报 Table doesn't exist，导致首次启动失败。
+                Long exists = jdbc.queryForObject(
+                        "SELECT COUNT(*) FROM information_schema.TABLES "
+                                + "WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?",
+                        Long.class, catalog, table.getKey());
+                if (exists == null || exists == 0L) {
+                    log.info("schema migrate skipped: {} 表不存在（首建库由 schema.sql 建全列）", table.getKey());
+                    continue;
+                }
                 for (Map.Entry<String, String> col : table.getValue().entrySet()) {
                     List<Map<String, Object>> found = jdbc.queryForList(
                             "SELECT 1 FROM information_schema.COLUMNS "
