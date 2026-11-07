@@ -116,13 +116,17 @@ Page({
 
     this.setData({ loading: true });
     api.get('/goods', { data: params, silent: true }).then((data) => {
-      const list = data && data.list ? data.list : [];
+      const list = (data && data.list ? data.list : []).map((g) => Object.assign({}, g, {
+        mainImage: api.assetUrl(g.mainImage)
+      }));
       const total = data && data.total ? data.total : 0;
+      const merged = reset ? list : this.data.goodsList.concat(list);
       this.setData({
-        goodsList: reset ? list : this.data.goodsList.concat(list),
+        goodsList: merged,
         page: page,
         total: total,
-        hasMore: this.data.goodsList.length + list.length < total,
+        // 重置时必须按新列表长度算，累加旧列表会算错（翻页后刷新只剩一页）
+        hasMore: merged.length < total && list.length > 0,
         loading: false,
         loaded: true
       });

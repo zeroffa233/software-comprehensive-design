@@ -45,7 +45,10 @@ Page({
   },
 
   onTabChange(e) {
-    this.setData({ tabIndex: Number(e.detail.value) });
+    // bindtap 只带 dataset，没有 detail.value（读 detail.value 会得到 NaN）
+    const index = Number(e.currentTarget.dataset.index);
+    if (isNaN(index) || index === this.data.tabIndex) { return; }
+    this.setData({ tabIndex: index });
     this.loadOrders(true);
   },
 
@@ -87,11 +90,12 @@ Page({
         });
       });
       const total = data && data.total ? data.total : 0;
+      const merged = reset ? list : this.data.list.concat(list);
       this.setData({
-        list: reset ? list : this.data.list.concat(list),
+        list: merged,
         page: page,
         total: total,
-        hasMore: this.data.list.length + list.length < total,
+        hasMore: merged.length < total && list.length > 0,
         loading: false,
         loaded: true
       });

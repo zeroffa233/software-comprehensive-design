@@ -438,7 +438,7 @@ module.exports = async function run(shim) {
   await shim.settle(() => page.data.loaded && page.data.list.length >= 2);
   assertContract(state.requests.slice(-1), 'mine(load)');
   base = before();
-  page.onTabChange({ detail: { value: 1 } }); // 在售
+  page.onTabChange({ currentTarget: { dataset: { index: 1 } } }); // 在售（bindtap 只带 dataset）
   await shim.settle(() => page.data.list.every((g) => g.status === '在售') && page.data.list.length >= 2, 5000);
   assertContract(state.requests.slice(base), 'mine(tab)');
   const saleIdx = page.data.list.findIndex((g) => g.status === '在售');
@@ -448,7 +448,7 @@ module.exports = async function run(shim) {
   assertContract(state.requests.slice(base), 'mine(offShelf)');
   await shim.settle(() => page.data.list.some((g) => g.status === '已下架') || true, 100);
   // 下架后当前"在售"Tab 看不到该商品 → 切回"全部"验证状态
-  page.onTabChange({ detail: { value: 0 } });
+  page.onTabChange({ currentTarget: { dataset: { index: 0 } } });
   await shim.settle(() => page.data.list.some((g) => g.status === '已下架'), 5000);
   const offIdx = page.data.list.findIndex((g) => g.status === '已下架');
   assert.ok(offIdx !== -1, '下架商品出现在全部列表');
