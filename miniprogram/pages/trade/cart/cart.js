@@ -31,7 +31,7 @@ Page({
         return {
           goodsId: it.goodsId,
           title: it.title,
-          mainImage: it.mainImage,
+          mainImage: api.assetUrl(it.mainImage),
           unitPrice: it.unitPrice,
           stock: it.stock,
           freight: freight,

@@ -114,6 +114,19 @@ function setBaseUrl(url) {
   BASE_URL = url;
 }
 
+// 静态资源绝对化：后端返回的图片是 /images/** 相对路径，小程序 <image> 不会拼后端域名，
+// 直接绑定会被当作包内路径（真机全空白）。所有要上屏的图片 URL 统一过这里。
+function assetUrl(url) {
+  if (!url || typeof url !== 'string') {
+    return '';
+  }
+  if (/^(https?:)?\/\//.test(url) || url.indexOf('data:') === 0) {
+    return url;
+  }
+  const origin = BASE_URL.replace(/\/api\/v1\/?$/, '');
+  return origin + (url.charAt(0) === '/' ? url : '/' + url);
+}
+
 const get = (path, options) => request('GET', path, options);
 const post = (path, data, options) => request('POST', path, Object.assign({}, options, { data }));
 const put = (path, data, options) => request('PUT', path, Object.assign({}, options, { data }));
@@ -122,6 +135,7 @@ const del = (path, data, options) => request('DELETE', path, Object.assign({}, o
 module.exports = {
   get BASE_URL() { return BASE_URL; },
   setBaseUrl,
+  assetUrl,
   genRequestId,
   formatTime,
   request,

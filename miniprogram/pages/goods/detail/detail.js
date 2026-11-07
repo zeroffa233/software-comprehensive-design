@@ -30,8 +30,12 @@ Page({
       const me = auth.getUserInfo();
       const isOwner = !!(goods.seller && me && goods.seller.uid === me.userId);
       const freight = Number(goods.freight) || 0;
+      // 图片是后端 /images/** 相对路径，上屏/预览都要转绝对地址
+      const images = (goods.images || []).map((img) => Object.assign({}, img, {
+        url: api.assetUrl(img.url)
+      }));
       this.setData({
-        goods: goods,
+        goods: Object.assign({}, goods, { images: images }),
         categoryPathText: pathText,
         isOwner: isOwner,
         freightText: freight > 0 ? '运费 ¥' + freight : '包邮',

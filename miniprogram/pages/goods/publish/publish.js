@@ -108,7 +108,7 @@ Page({
         secondNames: secondNames,
         secondIndex: secondIndex,
         secondDisabled: secondDisabled,
-        images: (goods.images || []).map((img) => ({ url: img.url }))
+        images: (goods.images || []).map((img) => ({ url: api.assetUrl(img.url) }))
       });
       wx.setNavigationBarTitle({ title: '编辑商品' });
     }).catch((err) => {
@@ -177,7 +177,11 @@ Page({
     this.setData({ uploading: true });
     const path = paths[0];
     api.upload('/goods/images', path).then((data) => {
-      const images = this.data.images.concat([{ imageId: data.imageId, url: data.url, tempPath: path }]);
+      const images = this.data.images.concat([{
+        imageId: data.imageId,
+        url: api.assetUrl(data.url),
+        tempPath: path
+      }]);
       this.setData({ images: images, uploading: false });
       this.uploadImages(paths.slice(1));
     }).catch(() => {

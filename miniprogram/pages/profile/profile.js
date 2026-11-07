@@ -29,13 +29,15 @@ Page({
 
   loadMe() {
     api.get('/users/me').then((me) => {
-      auth.setUserInfo(me);
+      // 头像为后端 /images/** 相对路径，展示前转绝对地址（存储里也存绝对地址，避免各处再转）
+      const user = Object.assign({}, me, { avatar: me && me.avatar ? api.assetUrl(me.avatar) : '' });
+      auth.setUserInfo(user);
       this.setData({
         logged: true,
-        me: me,
-        roleText: me.role === 'ADMIN' ? '平台管理员' : '普通用户',
-        nickname: me.nickname || '',
-        signature: me.signature || ''
+        me: user,
+        roleText: user.role === 'ADMIN' ? '平台管理员' : '普通用户',
+        nickname: user.nickname || '',
+        signature: user.signature || ''
       });
     }).catch(() => {
       this.setData({ logged: false });
