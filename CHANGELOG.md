@@ -3,6 +3,16 @@
 > **东南大学 计算机科学与技术专业 · 软件开发综合课程设计** ｜ 校园二手物品交易平台）
 > 记录每次提交/合并的要点。时间：2026-10-14（需求分析阶段 v1.0/v1.0.1/v1.0.2、设计准备阶段 v1.1）。
 
+## 2026-11-07 v2.1.2 评审修复（安全默认值隔离 + 小程序真机问题 + 文档口径对齐）
+
+- **小程序真机四处硬伤**：`app.js` 入口 require 路径（`./auth`→`./utils/auth`，修复启动即模块找不到）；新增 `request.assetUrl()` 统一把后端 `/images/**` 拼成绝对地址（列表/详情/购物车/我的商品/头像/发布九宫格共 7 处 `image` 绑定）；`mine`/`order-list` 的 Tab 事件改读 `currentTarget.dataset.index`（原来读 `detail.value` 得 NaN，Tab 点不动，测试用例同步改为真实 tap 事件形状）；三处列表 `hasMore` 改为按合并后列表长度计算（翻页后刷新只剩一页）。
+- **安全默认值按 profile 隔离**：验证码 `devCode` 仅在 `dev/test` 回显；`JwtUtil` 在非 dev profile 遇到默认密钥或 <32 字节时启动即失败；`DataInitializer` 仅在 `dev/test` 重置种子账号口令（避免重启把密码改回默认值的内置后门）；CORS 关闭 `allowCredentials` 并移除 `WebMvcConfig` 里的重复配置。
+- **越权与数据一致性**：`GoodsService.detail` 只缓存"在售"公开视图（原先属主看过的草稿/下架详情会被游客命中缓存，泄露 `offShelfReason`），并改为复制缓存再回填浏览量；`OrderService.pay` 改为先按 `status=待支付` 条件更新占住订单、再条件扣库存（原先同一订单并发支付会各扣一次库存）；`AdminUserService`/`OrderService` 出参手机号统一脱敏（NFR-09）。
+- **Agent 入口身份不可伪造**：FastAPI `_resolve_uid` 改为只认签名令牌——`AGENT_SVC` 令牌（`uid=0`，`security.decode_user_token` 放行）才允许用 `X-User-Id` 指定用户，`USER/ADMIN` 令牌取载荷 uid，未带令牌一律 401；删除 `body.userId` 兜底，任何人不能靠一个请求头冒充他人读订单。
+- **文档口径对齐事实**：README 新增"已知边界与生产化清单"（短信/种子账号/JWT 密钥/服务账号/CORS/HTTPS/存储/定时任务/测试九项）；`演示指南.md` 删除"RBAC 五表已落库"的错误表述，如实标注为后续扩展；`测试报告.md` 修正 admin-web 页数、补"契约测试打的是手写 Node 契约后端"的口径说明。
+- **验证**：`node miniprogram/tests/run.js` 3/3 套件、契约端点 31/31 零偏差；`python -m py_compile` 通过。**Java 改动未在评审机编译**（无 JDK/Maven），合入 main 前请先 `mvn -q compile` 并跑一遍演示链路。
+- 未做（已知项，见 README 清单）：RBAC 五表重构、后端单测/CI、`redis.keys`→`SCAN`、卖家侧履约入口。
+
 ## 2026-11-02 v2.1.1 开发收尾（文档同步 + 管理端补全 + 合并 main）
 
 - **需求文档同步**（事实记录，validate_report 8/8 复绿）：第五章新增 §五"v2.1.0 增补（急售/运费/热度）"、第六章新增 §3.4"运费快照与智能下单草稿"、第九章 Skill 清单 3 项扩至 SK-001~007（含增补说明，最小权限表述同步）；四/五/六章功能条目计数不受影响。

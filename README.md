@@ -106,6 +106,24 @@ node miniprogram/tests/run.js        # 小程序契约测试（31 端点对照�
 
 结果记录于 `CHANGELOG.md` 与 `测试报告.md`。
 
+## 已知边界与生产化清单
+
+当前版本是**课程演示态**（默认 `dev` profile），刻意保留了若干开发便利。以下每一项都已用 profile 或配置隔离，上线前需逐项处理：
+
+| 项 | 现状 | 生产化做法 |
+|---|---|---|
+| 短信验证码 | 无真实通道，`dev/test` profile 在 `data.devCode` 回显 | 接短信服务商；非 dev profile 已自动不回显 |
+| 种子账号 | dev 启动时把 3 个种子账号密码重置为文档值 | 非 dev profile 已跳过重置；生产不导入 `seed.sql` |
+| JWT 密钥 | 默认值写在仓库里 | 非 dev profile 启动即失败，必须注入 ≥32 字节 `JWT_SECRET`（两个服务同值） |
+| agent-svc 服务账号 | 约定凭证 + `X-User-Id` 传用户上下文 | 改内网共享密钥/短时令牌，服务间调用限制在内网 |
+| CORS | 全来源放行（已关闭 `allowCredentials`） | 管理端域名白名单 |
+| 传输 | 全链路 http | Nginx + 证书（NFR-03） |
+| 存储 | 商品图本地磁盘、单实例 | 对象存储 + CDN |
+| 定时任务 | 单实例 `@Scheduled` | 多实例需 ShedLock 一类分布式锁 |
+| 测试 | 无 JUnit/pytest；小程序为契约测试 | 补后端单测 + CI |
+
+角色模型：当前为 `user.role` 单字段枚举 + `@RequireRole` 注解，课次 4 提出的 RBAC 五表模型（user/role/permission + 两张中间表）为后续扩展项。
+
 ## 团队与里程碑
 
 | 节点 | 内容 |
